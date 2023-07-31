@@ -1,19 +1,17 @@
+import 'package:get/get.dart';
 import '../core/app_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
-class CustomBottomNavBar extends StatefulWidget {
+class CustomBottomNavBar extends StatelessWidget {
+  final int index;
+  final ValueChanged<int> onTap;
+
   CustomBottomNavBar({
-    super.key,
+    this.index = 0,
+    required this.onTap,
   });
 
-  var index = 0;
-
-  @override
-  State<CustomBottomNavBar> createState() => _CustomBottomNavBarState();
-}
-
-class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
@@ -36,10 +34,10 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
             icon: Icon(FontAwesome.address_book), label: ''),
         BottomNavigationBarItem(icon: Icon(SimpleLineIcons.settings), label: '')
       ],
-      onTap: (index) => setState(() {
-        widget.index = index;
-      }),
-      currentIndex: widget.index,
+      onTap: (index) {
+        onTap(index);
+      },
+      currentIndex: index,
       showSelectedLabels: false,
       showUnselectedLabels: false,
     );

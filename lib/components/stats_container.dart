@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get_utils/get_utils.dart';
 import 'package:router_manager/core/app_export.dart';
 
-
 class StatsContainer extends StatelessWidget {
   const StatsContainer({
     super.key,
@@ -40,11 +39,11 @@ class StatsContainer extends StatelessWidget {
                 .textTheme
                 .labelLarge!
                 .copyWith(color: AppColor.primary),
-          ).paddingOnly(bottom: 15),
+          ).paddingOnly(bottom: 5),
           Text(
             value,
             style: Theme.of(context).textTheme.headlineLarge!.copyWith(),
-          ).paddingOnly(bottom: 10),
+          ).paddingOnly(bottom: 5),
           Text(
             subtitle,
             style: Theme.of(context)
