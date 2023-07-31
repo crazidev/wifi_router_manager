@@ -52,7 +52,7 @@ class HomeScreen extends StatelessWidget {
                       title: 'Flight',
                     ),
                     IconContainerWithTitle(
-                      icon: SimpleLineIcons.logout,
+                      icon: Icons.logout,
                       title: 'Logout',
                     ),
                   ],

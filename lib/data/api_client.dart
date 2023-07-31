@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as Http;
+import 'package:router_manager/core/app_constant.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:flutter/foundation.dart' as Foundation;
 import 'package:get/get_connect/http/src/request/request.dart';
@@ -12,7 +13,7 @@ class ApiClient extends GetxService {
   static final String noInternetMessage = 'NoInternetConnection';
   final int timeoutInSeconds = 60;
   Map<String, String>? _mainHeaders;
-  final appBaseUrl = '';
+  final appBaseUrl = AppConstant.baseUrl;
   String? token = "";
   final String? customToken;
 
@@ -69,9 +70,9 @@ class ApiClient extends GetxService {
       }
 
       Http.Response _response = await Http.post(
-        Uri.parse(baseUri ?? appBaseUrl + uri),
+        Uri.parse('http://192.168.0.1/cgi-bin/http.cgi'),
         body: body,
-        headers: _mainHeaders,
+        // headers: _mainHeaders,
       ).timeout(Duration(seconds: timeoutInSeconds));
       return handleResponse(_response, uri, printLogs: printLogs);
     } catch (e) {

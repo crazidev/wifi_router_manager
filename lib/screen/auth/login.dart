@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/dashhboard_navigator.dart';
+import 'package:router_manager/screen/auth/controller/auth_controller.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  LoginScreen({super.key});
+
+  AuthController authController = Get.put(AuthController());
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +45,7 @@ class LoginScreen extends StatelessWidget {
               ),
             ).marginOnly(bottom: 70),
             TextField(
+              controller: authController.password,
               decoration: InputDecoration(
                 filled: true,
                 labelText: 'Password',
@@ -54,10 +58,11 @@ class LoginScreen extends StatelessWidget {
             ).marginOnly(bottom: 20),
             ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => DashboardNavigator()));
+                  authController.login();
+                  //   Navigator.push(
+                  //       context,
+                  //       MaterialPageRoute(
+                  //           builder: (context) => DashboardNavigator()));
                 },
                 child: Text(
                   "Proceed",
