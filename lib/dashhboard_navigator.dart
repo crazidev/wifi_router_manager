@@ -18,36 +18,34 @@ class DashboardNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: AppColor.bottomNavBG,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(35),
-                    bottomRight: Radius.circular(35)),
-                child: Obx(() => IndexedStack(
-                      index: controller.navIndex.value,
-                      children: [
-                        HomeScreen(),
-                        Devices(),
-                        SMSscreen(),
-                        Placeholder(),
-                        Placeholder()
-                      ],
-                    )),
-              ),
+      child: Column(
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(35),
+                  bottomRight: Radius.circular(35)),
+              child: Obx(() => IndexedStack(
+                    index: controller.navIndex.value,
+                    children: [
+                      HomeScreen(),
+                      Devices(),
+                      SMSscreen(),
+                      Placeholder(),
+                      Placeholder()
+                    ],
+                  )),
             ),
-            Obx(
-              () => CustomBottomNavBar(
-                index: controller.navIndex.value,
-                onTap: (int value) {
-                  controller.navIndex.value = value;
-                },
-              ),
-            )
-          ],
-        ),
+          ),
+          Obx(
+            () => CustomBottomNavBar(
+              index: controller.navIndex.value,
+              onTap: (int value) {
+                controller.navIndex.value = value;
+              },
+            ),
+          )
+        ],
       ),
     );
   }
