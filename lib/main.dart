@@ -3,11 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:router_manager/screen/auth/login.dart';
-import 'package:router_manager/screen/sms/sms_screen.dart';
-import 'package:router_manager/screen/devices/devices.dart';
-import 'package:router_manager/screen/home/home_screen.dart';
-import 'package:router_manager/components/custom_narbar.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 

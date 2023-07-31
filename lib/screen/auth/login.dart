@@ -10,12 +10,14 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.all(30),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            SizedBox(height: size.height * 20 / 100),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -32,12 +34,13 @@ class LoginScreen extends StatelessWidget {
             ).marginOnly(bottom: 10),
             Text(
               "Login to MTN Boardband Device Interface",
+              textAlign: TextAlign.center,
               style: GoogleFonts.lato(
                 color: AppColor.dim,
                 fontSize: 18,
                 // color: AppColor.primary,
               ),
-            ).marginOnly(bottom: 50),
+            ).marginOnly(bottom: 70),
             TextField(
               decoration: InputDecoration(
                 filled: true,

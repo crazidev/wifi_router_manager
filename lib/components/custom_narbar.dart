@@ -23,7 +23,7 @@ class CustomBottomNavBar extends StatelessWidget {
       items: const [
         BottomNavigationBarItem(
             icon: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
+              padding: EdgeInsets.symmetric(vertical: 10),
               child: Icon(FontAwesome.dashboard),
             ),
             label: ''),
