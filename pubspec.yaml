@@ -1,16 +1,18 @@
 name: router_manager
 description: A new Flutter project.
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: '>=3.0.6 <4.0.0'
+  sdk: ">=3.0.5 <4.0.0"
 
 dependencies:
+  avatar_glow: ^2.0.2
   flutter:
     sdk: flutter
   flutter_vector_icons: ^2.0.0
   get: ^4.6.5
+  google_fonts: ^5.1.0
   shared_preferences: ^2.2.0
 
 dev_dependencies:
@@ -20,3 +22,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/

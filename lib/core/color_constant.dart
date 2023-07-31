@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppColor {
-  static Color neutral50 = fromHex('#E6E7E9');
+  static Color bg = fromHex('#010233');
+  static Color container = fromHex('#131746');
+  static Color bottomNavBG = fromHex('#000129');
+  static Color primary = fromHex('#FF4747');
+  static Color dim = fromHex('#4A5380');
 
   static Color fromHex(String hexString) {
     final buffer = StringBuffer();
