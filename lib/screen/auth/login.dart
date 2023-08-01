@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:router_manager/components/shake_widget.dart';
 import 'package:router_manager/core/app_export.dart';
-import 'package:router_manager/dashhboard_navigator.dart';
 import 'package:router_manager/screen/auth/controller/auth_controller.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -20,7 +20,7 @@ class LoginScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: size.height * 20 / 100),
+            SizedBox(height: size.height * 15 / 100),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -43,8 +43,15 @@ class LoginScreen extends StatelessWidget {
                 fontSize: 18,
                 // color: AppColor.primary,
               ),
-            ).marginOnly(bottom: 70),
+            ).marginOnly(bottom: 40),
+            Obx(() => ShakeWidget(
+                  child: Text(
+                    authController.errorMsg.value,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                )),
             TextField(
+              autofocus: false,
               controller: authController.password,
               decoration: InputDecoration(
                 filled: true,
