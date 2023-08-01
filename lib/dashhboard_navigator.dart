@@ -5,10 +5,7 @@ import 'package:router_manager/screen/sms/sms_screen.dart';
 import 'package:router_manager/screen/devices/devices.dart';
 import 'package:router_manager/screen/home/home_screen.dart';
 import 'package:router_manager/components/custom_narbar.dart';
-
-class HomeController extends GetxController {
-  var navIndex = 0.obs;
-}
+import 'package:router_manager/controller/home_controller.dart';
 
 class DashboardNavigator extends StatelessWidget {
   DashboardNavigator({super.key});
@@ -39,6 +36,7 @@ class DashboardNavigator extends StatelessWidget {
           ),
           Obx(
             () => CustomBottomNavBar(
+              controller: controller,
               index: controller.navIndex.value,
               onTap: (int value) {
                 controller.navIndex.value = value;

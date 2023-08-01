@@ -9,9 +9,14 @@
             "request": "launch",
             "type": "dart",
             "args": [
-                "-v",
+              
                 "--no-pub"
             ]
+        },
+        {
+            "name": "Flutter: Attach to Device",
+            "type": "dart",
+            "request": "attach"
         },
         {
             "name": "router_app (profile mode)",

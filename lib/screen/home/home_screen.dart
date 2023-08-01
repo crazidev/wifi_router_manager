@@ -3,20 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:router_manager/screen/auth/login.dart';
 import 'package:router_manager/core/color_constant.dart';
+import 'package:router_manager/dashhboard_navigator.dart';
+import 'package:router_manager/core/custom_navigator.dart';
 import 'package:router_manager/components/network_bar.dart';
+import 'package:router_manager/controller/home_controller.dart';
 import 'package:router_manager/components/stats_container.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:router_manager/components/icon_con_with_title.dart';
 import 'package:router_manager/components/title_text_and_value.dart';
-import 'package:router_manager/core/custom_navigator.dart';
-import 'package:router_manager/screen/auth/login.dart';
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({
+  HomeScreen({
     super.key,
   });
+
+  HomeController homeController = Get.put(HomeController());
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +104,9 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                NetworkStatusAndSwitcher(),
+                NetworkStatusAndSwitcher(
+                  controller: homeController,
+                ),
                 Spacer(),
                 // Padding(
                 //   padding: const EdgeInsets.all(8.0),
@@ -159,9 +165,9 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 Padding(
-                  padding: EdgeInsets.only(bottom: 0, right: 25, left: 25),
+                  padding: EdgeInsets.only(bottom: 20, right: 25, left: 25),
                   child: Column(
                     children: [
                       Row(
@@ -193,55 +199,67 @@ class HomeScreen extends StatelessWidget {
 class NetworkStatusAndSwitcher extends StatelessWidget {
   const NetworkStatusAndSwitcher({
     super.key,
+    required this.controller,
   });
+
+  final HomeController controller;
 
   @override
   Widget build(BuildContext context) {
-    return AvatarGlow(
-      endRadius: 90.0,
-      duration: Duration(milliseconds: 2000),
-      showTwoGlows: true,
-      // animate: false,
-      repeatPauseDuration: Duration(milliseconds: 400),
-      shape: BoxShape.circle,
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(200),
-            child: Container(
-              width: 130,
-              height: 130,
-              color: AppColor.container,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  NetworkBar(
-                    index: 2,
-                  ).paddingOnly(bottom: 10, top: 10),
-                  // Switch(
-                  //   value: true,
-                  //   onChanged: (value) {},
-                  // ),
-                  Text(
-                    '4G LTD',
-                    style: Theme.of(context).textTheme.labelSmall!.copyWith(),
-                  )
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-              right: 0,
-              child: IconButton.filled(
-                  enableFeedback: true,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.dim,
+    return GetBuilder(
+        id: 'network_details',
+        init: controller,
+        builder: (_) {
+          return AvatarGlow(
+            endRadius: 90.0,
+            duration: Duration(milliseconds: 2000),
+            showTwoGlows: true,
+            // animate: false,
+            repeatPauseDuration: Duration(milliseconds: 400),
+            shape: BoxShape.circle,
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(200),
+                  child: Container(
+                    width: 130,
+                    height: 130,
+                    color: AppColor.container,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        NetworkBar(
+                          index: int.tryParse(
+                              controller.networkD?.signal_lvl ?? "0"),
+                        ).paddingOnly(bottom: 10, top: 10),
+                        // Switch(
+                        //   value: true,
+                        //   onChanged: (value) {},
+                        // ),
+                        Text(
+                          controller.networkD?.network_type_str ?? '4G',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall!
+                              .copyWith(),
+                        )
+                      ],
+                    ),
                   ),
-                  onPressed: () {},
-                  icon: Icon(Icons.wifi_rounded))),
-        ],
-      ),
-    );
+                ),
+                Positioned(
+                    right: 0,
+                    child: IconButton.filled(
+                        enableFeedback: true,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.dim,
+                        ),
+                        onPressed: () {},
+                        icon: Icon(Icons.wifi_rounded))),
+              ],
+            ),
+          );
+        });
   }
 }
