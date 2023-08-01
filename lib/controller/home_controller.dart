@@ -31,11 +31,12 @@ class HomeController extends GetxController {
     fetchSMS();
     fetchNetworkDetails();
 
-    Timer(Duration(milliseconds: 4000), () {
-      if (fist_time) fist_time = false;
+    if (fist_time) fist_time = false;
 
-      fetch();
-    });
+    // Timer(Duration(milliseconds: 4000), () {
+
+    //   fetch();
+    // });
   }
 
   fetchSMS() async {

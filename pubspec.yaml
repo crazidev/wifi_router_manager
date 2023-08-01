@@ -18,6 +18,7 @@ dependencies:
   modal_bottom_sheet: ^3.0.0-pre
   native_dio_adapter: ^1.0.0+1
   shared_preferences: ^2.2.0
+  smartrefresh: ^0.0.2
 
 dev_dependencies:
   flutter_test:
