@@ -14,6 +14,11 @@
             ]
         },
         {
+            "name": "Flutter: Attach to Device",
+            "type": "dart",
+            "request": "attach"
+        },
+        {
             "name": "router_app (profile mode)",
             "request": "launch",
             "type": "dart",
