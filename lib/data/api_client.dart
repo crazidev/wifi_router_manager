@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:native_dio_adapter/native_dio_adapter.dart';
 import 'package:router_manager/core/app_constant.dart';
 import 'package:router_manager/core/app_export.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   static final String noInternetMessage = 'NoInternetConnection';
@@ -11,6 +12,7 @@ class ApiClient {
   final appBaseUrl = AppConstant.baseUrl;
   String? token = "";
   final dio = Dio();
+  Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
   Future<Response> getData({
     String? uri,
