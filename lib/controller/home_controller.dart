@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/data/api_client.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:router_manager/core/app_constant.dart';
+import 'package:router_manager/data/model/response/blacklist_devices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/model/response/connected_devices_model.dart';
 import 'package:router_manager/data/model/response/sms_model.dart';
@@ -15,7 +17,22 @@ class HomeController extends GetxController {
   @override
   Future<void> onReady() async {
     prefs = await SharedPreferences.getInstance();
+    timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) {
+      fetch();
+    });
+    timer2 = Timer.periodic(const Duration(seconds: 3), (timer) {
+      getConnetedDevices();
+    });
     super.onReady();
+  }
+
+  @override
+  void onClose() {
+    refreshController.dispose();
+    Logger().log('Controller closed');
+    timer.cancel();
+    timer2.cancel();
+    super.onClose();
   }
 
   late SharedPreferences prefs;
@@ -25,21 +42,23 @@ class HomeController extends GetxController {
   SmsModel? smsList;
   NetworkDModel? networkD;
   ConnectedDModel? connectedDevices;
+  BlacklistDModel? blacklistDModel;
   var sms_unread = "0".obs;
   var sms_count = 0;
   var signal_lvl = '0'.obs;
   var fist_time = true;
   var data_switch = ''.obs;
+  late Timer timer;
+  late Timer timer2;
 
   fetch() async {
     Logger().log("Fetch function");
-    fetchSMS();
-    fetchNetworkDetails();
-    fetchDataSwitch();
-    getConnetedDevices();
-
-    // if (fist_time) fist_time = false;
-    refreshController.refreshCompleted();
+    await fetchSMS();
+    await fetchNetworkDetails();
+    await fetchDataSwitch();
+    fetchBlacklist();
+    update();
+    if (refreshController.isRefresh) refreshController.refreshCompleted();
   }
 
   fetchSMS() async {
@@ -53,7 +72,7 @@ class HomeController extends GetxController {
       // if (fist_time) {
       smsList = SmsModel.fromMap(value.data);
       sms_unread.value = smsList!.sms_unread;
-      sms_count = smsList!.sms_list.length;
+      update();
     });
   }
 
@@ -73,7 +92,6 @@ class HomeController extends GetxController {
         printLogs: false).then((value) {
       // if (data_switch.value != value.data['data_switch']) {
       data_switch.value = value.data['dialMode'] ?? '';
-      update();
       Logger().log('Updating Data Switch');
       // }
     });
@@ -98,9 +116,33 @@ class HomeController extends GetxController {
       "cmd": 402,
       "method": "GET",
       "sessionId": sessionID,
-    }, printLogs: true).then((value) {
+    }, printLogs: false).then((value) {
       connectedDevices = ConnectedDModel.fromMap(value.data);
       Logger().log('Fetching connected devices');
+    });
+  }
+
+  deleteSMS(id, {bool all = false}) {
+    ApiClient().postData({
+      "cmd": 14,
+      "index": all ? "DELETE ALL" : id,
+      "subcmd": 0,
+      "method": "POST",
+      "sessionId": sessionID,
+    }, printLogs: true).then((value) {
+      fetchSMS();
+      Logger().log('Deletiing sms');
+    });
+  }
+
+  fetchBlacklist() {
+    ApiClient().postData({
+      "cmd": 405,
+      "method": "GET",
+      "sessionId": sessionID,
+    }, printLogs: false).then((value) {
+      blacklistDModel = BlacklistDModel.fromMap(value.data);
+      Logger().log('Fetching blacklist devices');
     });
   }
 

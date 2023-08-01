@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 
+import '../../controller/home_controller.dart';
+
 class Devices extends StatelessWidget {
   Devices({super.key});
 
@@ -29,6 +31,7 @@ class Devices extends StatelessWidget {
       'blocked': true,
     },
   ];
+  HomeController homeController = Get.put(HomeController());
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +39,10 @@ class Devices extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         toolbarHeight: 70,
-        title: Text("Connected Devices (5)").marginOnly(top: 10),
+        centerTitle: false,
+        title: Text("Devices (5)").marginOnly(top: 10),
         actions: [
           // IconButton(onPressed: () {}, icon: Icon(Ionicons.trash_bin_outline)),
         ],
@@ -47,29 +52,64 @@ class Devices extends StatelessWidget {
             ),
             preferredSize: Size.fromHeight(5)),
       ),
-      body: Stack(
-        children: [
-          Positioned(
-            bottom: 0,
-            right: -300,
-            child: Image.asset(
-              'assets/5076404.jpg',
-              // fit: BoxFit.,
-              opacity: AlwaysStoppedAnimation(0.2),
-              width: 1400,
-              // height: ,
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            Positioned(
+              bottom: 0,
+              right: -300,
+              child: Image.asset(
+                'assets/5076404.jpg',
+                // fit: BoxFit.,
+                opacity: AlwaysStoppedAnimation(0.2),
+                width: 1400,
+                // height: ,
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: List.from(devices.map((e) => DeviceList(
-                    data: e,
-                    onclick: () {},
-                  ).marginOnly(bottom: 10))),
-            ),
-          ),
-        ],
+            Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: homeController.connectedDevices?.dhcp_list_info == null
+                    ? SizedBox()
+                    : GetBuilder(
+                        init: homeController,
+                        builder: (context) {
+                          return Column(
+                            children: [
+                              Column(
+                                children: List.from(homeController
+                                    .connectedDevices!.dhcp_list_info
+                                    .map((e) {
+                                  return DeviceList(
+                                    data: {
+                                      'name': e.hostname,
+                                      'ip': e.ip,
+                                      'mac': e.mac,
+                                      'selected': false,
+                                      'blocked': false,
+                                    },
+                                    onclick: () {},
+                                  ).marginOnly(bottom: 10);
+                                })),
+                              ),
+                              Column(
+                                children: List.from(homeController
+                                    .blacklistDModel!.datas.maclist
+                                    .map((e) {
+                                  return DeviceList(
+                                    data: {
+                                      'name': e.mac,
+                                      'selected': false,
+                                      'blocked': true,
+                                    },
+                                    onclick: () {},
+                                  ).marginOnly(bottom: 10);
+                                })),
+                              ),
+                            ],
+                          );
+                        })),
+          ],
+        ),
       ),
     );
   }
@@ -124,23 +164,25 @@ class DeviceList extends StatelessWidget {
                             value: !data['blocked'], onChanged: (value) {}))),
               ],
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "IP: ${data['ip']}",
-                  style: TextStyle(
-                    color: AppColor.dim,
+            subtitle: data['blocked']
+                ? null
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "IP: ${data['ip']}",
+                        style: TextStyle(
+                          color: AppColor.dim,
+                        ),
+                      ),
+                      Text(
+                        "${data['mac']}",
+                        style: TextStyle(
+                          color: AppColor.dim,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Text(
-                  "MAC: ${data['mac']}",
-                  style: TextStyle(
-                    color: AppColor.dim,
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ],

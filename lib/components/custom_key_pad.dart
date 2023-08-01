@@ -24,9 +24,9 @@ class CustomKeyPad extends StatelessWidget {
     "7",
     "8",
     "9",
-    "",
+    "*",
     "0",
-    "del"
+    "#"
   ];
   final RxList _otp;
   final int? codeLength;
@@ -39,7 +39,7 @@ class CustomKeyPad extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
-        width: Get.height * 35 / 100,
+        width: Get.height * 37 / 100,
         child: GridView.builder(
           itemCount: numbers.length,
           shrinkWrap: true,

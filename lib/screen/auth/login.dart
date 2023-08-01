@@ -15,7 +15,7 @@ class LoginScreen extends StatelessWidget {
     final AuthController authController =
         Get.put(AuthController(stateChange: (state) {
       if (state == "login_successful") {
-        MyRouter().replace(context, DashboardNavigator());
+        MyRouter().to(context, DashboardNavigator());
       }
     }));
 

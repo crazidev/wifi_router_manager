@@ -17,19 +17,30 @@ import 'package:router_manager/components/icon_con_with_title.dart';
 import 'package:router_manager/components/title_text_and_value.dart';
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   HomeScreen({
     super.key,
   });
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   HomeController homeController = Get.put(HomeController());
+
+  @override
+  void dispose() {
+    Get.delete<HomeController>();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SmartRefresher(
         onRefresh: () {
-          homeController.fetch();
+          // homeController.fetch();
         },
         controller: homeController.refreshController,
         child: Stack(
@@ -67,8 +78,7 @@ class HomeScreen extends StatelessWidget {
                       IconContainerWithTitle(
                         icon: Icons.logout,
                         title: 'Logout',
-                        onTap: () =>
-                            MyRouter().removeAll(context, LoginScreen()),
+                        onTap: () => Navigator.pop(context),
                       ),
                     ],
                   ),
@@ -112,42 +122,8 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  NetworkStatusAndSwitcher(
-                    controller: homeController,
-                  ),
+                  NetworkStatusAndSwitcher(controller: homeController),
                   Spacer(),
-                  // Padding(
-                  //   padding: const EdgeInsets.all(8.0),
-                  //   child: Row(
-                  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //     children: [
-                  //       ElevatedButton(
-                  //         onPressed: () {},
-                  //         style: ElevatedButton.styleFrom(
-                  //             backgroundColor: AppColor.container,
-                  //             padding: EdgeInsets.symmetric(
-                  //                 horizontal: 10, vertical: 10),
-                  //             shape: RoundedRectangleBorder(
-                  //                 borderRadius: BorderRadius.circular(10))),
-                  //         child: Column(
-                  //           children: [
-                  //             Icon(
-                  //               Icons.dialpad,
-                  //               size: 20,
-                  //             ).paddingOnly(bottom: 5),
-                  //             Text(
-                  //               "USSD",
-                  //               style: Theme.of(context)
-                  //                   .textTheme
-                  //                   .labelSmall!
-                  //                   .copyWith(),
-                  //             ),
-                  //           ],
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
                   GetBuilder(
                       init: homeController,
                       builder: (context) {

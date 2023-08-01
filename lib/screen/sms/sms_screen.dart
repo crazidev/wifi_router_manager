@@ -1,29 +1,22 @@
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:router_manager/data/api_client.dart';
+
+import '../../controller/home_controller.dart';
 
 // ignore: must_be_immutable
 class SMSscreen extends StatelessWidget {
   SMSscreen({super.key});
 
-  List devices = [
-    {
-      'message':
-          'You have 504.10MB of Data left. To access your data when you exhaust it, dial *312*1# or click on http://engage1.mtn.ng to buy a new plan',
-      'number': '081232812',
-      'date': '23 Oct 2002',
-      'selected': false,
-      'read': true,
-    },
-    {
-      'message': 'G-334093 is your Google verification code.',
-      'number': '081232812',
-      'date': '23 Oct 2002',
-      'selected': false,
-      'read': false,
-    },
-  ];
+  HomeController homeController = Get.put(HomeController());
+
+  var selectedList = [].obs;
+  var selectAll = false;
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +24,61 @@ class SMSscreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: false,
+        automaticallyImplyLeading: false,
         toolbarHeight: 70,
         title: Text("Device SMS (5/50)").marginOnly(top: 10),
         actions: [
-          // IconButton(onPressed: () {}, icon: Icon(Ionicons.trash_bin_outline)),
+          Obx(() {
+            var i = selectedList.value;
+            return Row(
+              children: [
+                selectAll
+                    ? IconButton(
+                        onPressed: () {
+                          selectAll = false;
+                          selectedList.clear();
+                        },
+                        icon: Icon(Icons.check_box_outlined))
+                    : IconButton(
+                        onPressed: () {
+                          selectAll = true;
+                          homeController.smsList!.sms_list.forEach((element) {
+                            var data = utf8.decode(base64Decode(element));
+                            selectedList.add(data.split(' ').elementAt(0));
+                          });
+                        },
+                        icon: Icon(Icons.check_box_outline_blank)),
+                if (selectedList.isNotEmpty)
+                  IconButton(
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (_) => CupertinoAlertDialog(
+                                  title: Text('Confirm'),
+                                  content:
+                                      Text('Do you want to delete all sms?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        homeController.deleteSMS('', all: true);
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                ));
+                      },
+                      icon: Icon(Ionicons.trash_bin_outline)),
+              ],
+            );
+          })
         ],
         bottom: PreferredSize(
             child: Divider(
@@ -55,15 +99,82 @@ class SMSscreen extends StatelessWidget {
               // height: ,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: List.from(devices.map((e) => DeviceList(
-                    data: e,
-                    onclick: () {},
-                  ).marginOnly(bottom: 10))),
-            ),
-          ),
+          GetBuilder(
+              init: homeController,
+              builder: (_) {
+                return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Obx(
+                      () => ListView(
+                        children:
+                            List.from(homeController.smsList!.sms_list.map((e) {
+                          var data = utf8.decode(base64Decode(e));
+
+                          var others =
+                              "${data.split(' ').elementAt(0)} ${data.split(' ').elementAt(1)} ${data.split(' ').elementAt(2)} ${data.split(' ').elementAt(3)} ${data.split(' ').elementAt(4)} ";
+
+                          var selected = false;
+
+                          selectedList.forEach((e) {
+                            if (e == data.split(' ').elementAt(0)) {
+                              selected = true;
+                            }
+                          });
+
+                          return DeviceList(
+                            selectedList: selectedList,
+                            data: {
+                              'id': data.split(' ').elementAt(0),
+                              'message': data.substring(others.length),
+                              'number': data.split(' ').elementAt(2),
+                              'date': data.split(' ').elementAt(3) +
+                                  " " +
+                                  data.split(' ').elementAt(4),
+                              'selected': selected,
+                              'read': data.split(' ').elementAt(1) == "1"
+                                  ? true
+                                  : false,
+                            },
+                            onDelete: (id) {
+                              showDialog(
+                                  context: context,
+                                  builder: (_) => CupertinoAlertDialog(
+                                        title: Text('Confirm'),
+                                        content: Text(
+                                            'Do you want to delete this sms?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              homeController.deleteSMS(id);
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('Delete'),
+                                          ),
+                                        ],
+                                      ));
+                            },
+                            onclick: () {
+                              if (selectedList.isNotEmpty) {
+                                if (selected) {
+                                  selectedList
+                                      .remove(data.split(' ').elementAt(0));
+                                } else {
+                                  selectedList
+                                      .add(data.split(' ').elementAt(0));
+                                }
+                              }
+                            },
+                          ).marginOnly(bottom: 10);
+                        })),
+                      ),
+                    ));
+              }),
         ],
       ),
     );
@@ -75,23 +186,31 @@ class DeviceList extends StatelessWidget {
     super.key,
     this.data,
     required this.onclick,
+    required this.selectedList,
+    required this.onDelete,
   });
 
   final dynamic data;
   final Function() onclick;
+  final ValueChanged onDelete;
+
+  final RxList selectedList;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         AnimatedContainer(
-            duration: Duration(milliseconds: 400),
+            duration: Duration(milliseconds: 200),
             width: data['selected'] ? 30 : 0,
             margin: EdgeInsets.only(right: data['selected'] ? 10 : 0),
             child: data['selected'] ? Icon(Ionicons.checkmark_circle) : null),
         Expanded(
           child: ListTile(
             onTap: onclick,
+            onLongPress: () {
+              selectedList.add(data['id']);
+            },
             selected: data['selected'],
             contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
             shape:
@@ -121,21 +240,23 @@ class DeviceList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Phone: ${data['number']}",
+                      "${data['number']}",
                       style: TextStyle(
                         color: AppColor.dim,
                       ),
                     ),
                     Text(
-                      "Date: ${data['date']}",
+                      "${data['date']}",
                       style: TextStyle(
                         color: AppColor.dim,
                       ),
                     ),
                   ],
                 ),
-                IconButton(
-                    onPressed: () {}, icon: Icon(Ionicons.trash_outline)),
+                if (!data['selected'])
+                  IconButton(
+                      onPressed: () => onDelete(data['id']),
+                      icon: Icon(Ionicons.trash_outline)),
               ],
             ),
           ),
