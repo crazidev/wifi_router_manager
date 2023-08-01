@@ -4,13 +4,21 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class MyRouter {
   to(BuildContext context, Widget widget) {
-    Navigator.push(
-        context, MaterialWithModalsPageRoute(builder: (context) => widget));
+    Get.to(() => widget);
+    // Navigator.push(
+    //     context, MaterialWithModalsPageRoute(builder: (context) => widget));
   }
 
   replace(BuildContext context, Widget widget) {
-    Navigator.of(context).pushReplacement(
-        MaterialWithModalsPageRoute(builder: (context) => widget));
+    Get.off(() => widget);
+    // Navigator.of(context).pushReplacement(
+    //     MaterialWithModalsPageRoute(builder: (context) => widget));
+  }
+
+  removeAll(BuildContext context, Widget widget) {
+    Get.offAll(() => widget);
+    // Navigator.of(context).pushReplacement(
+    //     MaterialWithModalsPageRoute(builder: (context) => widget));
   }
 
   pop(BuildContext context) {

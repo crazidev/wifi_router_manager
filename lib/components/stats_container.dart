@@ -42,7 +42,8 @@ class StatsContainer extends StatelessWidget {
           ).paddingOnly(bottom: 5),
           Text(
             value,
-            style: Theme.of(context).textTheme.headlineLarge!.copyWith(),
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.headlineMedium!.copyWith(),
           ).paddingOnly(bottom: 5),
           Text(
             subtitle,

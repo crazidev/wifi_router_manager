@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:router_manager/components/shake_widget.dart';
 import 'package:router_manager/core/app_export.dart';
-import 'package:router_manager/core/custom_navigator.dart';
 import 'package:router_manager/dashhboard_navigator.dart';
+import 'package:router_manager/core/custom_navigator.dart';
+import 'package:router_manager/components/shake_widget.dart';
 import 'package:router_manager/screen/auth/controller/auth_controller.dart';
 
 class LoginScreen extends StatelessWidget {

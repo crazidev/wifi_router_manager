@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:router_manager/screen/auth/login.dart';
 
-
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 void main() {
@@ -18,7 +17,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextStyle defaultFont = GoogleFonts.josefinSans();
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

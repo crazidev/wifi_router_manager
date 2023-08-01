@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smartrefresh/smartrefresh.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:router_manager/screen/auth/login.dart';
 import 'package:router_manager/core/color_constant.dart';
 import 'package:router_manager/dashhboard_navigator.dart';
@@ -25,172 +27,207 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned(
-            bottom: 0,
-            child: Image.asset(
-              'assets/Vector_2646.jpg',
-              // fit: BoxFit.,
-              opacity: AlwaysStoppedAnimation(0.2),
-              width: 1300,
-              // height: ,
+      body: SmartRefresher(
+        onRefresh: () {
+          homeController.fetch();
+        },
+        controller: homeController.refreshController,
+        child: Stack(
+          children: [
+            Positioned(
+              bottom: 0,
+              child: Image.asset(
+                'assets/Vector_2646.jpg',
+                // fit: BoxFit.,
+                opacity: AlwaysStoppedAnimation(0.2),
+                width: 1300,
+                // height: ,
+              ),
             ),
-          ),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconContainerWithTitle(
-                      icon: Icons.power_settings_new,
-                      title: 'Power off',
-                    ),
-                    IconContainerWithTitle(
-                      icon: Icons.restart_alt,
-                      title: 'Restart',
-                    ),
-                    IconContainerWithTitle(
-                      icon: Icons.flight,
-                      title: 'Flight',
-                    ),
-                    IconContainerWithTitle(
-                      icon: Icons.logout,
-                      title: 'Logout',
-                      onTap: () => MyRouter().replace(context, LoginScreen()),
-                    ),
-                  ],
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconContainerWithTitle(
+                        icon: Icons.power_settings_new,
+                        title: 'Power off',
+                      ),
+                      IconContainerWithTitle(
+                        icon: Icons.restart_alt,
+                        title: 'Restart',
+                      ),
+                      IconContainerWithTitle(
+                        icon: Icons.flight,
+                        title: 'Flight',
+                      ),
+                      IconContainerWithTitle(
+                        icon: Icons.logout,
+                        title: 'Logout',
+                        onTap: () =>
+                            MyRouter().removeAll(context, LoginScreen()),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      TitleTextAndValue(
-                        title: 'Network Provider',
-                        value: 'MTN-NG',
-                        // end: true,
-                      ).paddingOnly(right: 20),
-                      TitleTextAndValue(
-                        title: 'Signal Strength',
-                        value: '-110dBm',
-                        // end: true,
-                      ),
-                    ],
-                  ),
-                ),
-                Spacer(),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 80),
-                  child: Text(
-                    "MTN Boardband\n4G Router",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.electrolize(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      // color: AppColor.primary,
+            SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        TitleTextAndValue(
+                          title: 'Network Provider',
+                          value: 'MTN-NG',
+                          // end: true,
+                        ).paddingOnly(right: 20),
+                        TitleTextAndValue(
+                          title: 'Signal Strength',
+                          value: '-110dBm',
+                          // end: true,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                NetworkStatusAndSwitcher(
-                  controller: homeController,
-                ),
-                Spacer(),
-                // Padding(
-                //   padding: const EdgeInsets.all(8.0),
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       ElevatedButton(
-                //         onPressed: () {},
-                //         style: ElevatedButton.styleFrom(
-                //             backgroundColor: AppColor.container,
-                //             padding: EdgeInsets.symmetric(
-                //                 horizontal: 10, vertical: 10),
-                //             shape: RoundedRectangleBorder(
-                //                 borderRadius: BorderRadius.circular(10))),
-                //         child: Column(
-                //           children: [
-                //             Icon(
-                //               Icons.dialpad,
-                //               size: 20,
-                //             ).paddingOnly(bottom: 5),
-                //             Text(
-                //               "USSD",
-                //               style: Theme.of(context)
-                //                   .textTheme
-                //                   .labelSmall!
-                //                   .copyWith(),
-                //             ),
-                //           ],
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      StatsContainer(
-                        icon: SimpleLineIcons.cloud_download,
-                        title: 'Download',
-                        value: '30.0',
-                        subtitle: 'mbps',
+                  Spacer(),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 0, horizontal: 80),
+                    child: Text(
+                      "MTN Boardband\n4G Router",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.electrolize(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        // color: AppColor.primary,
                       ),
-                      StatsContainer(
-                        icon: SimpleLineIcons.screen_desktop,
-                        title: 'Connected Devices',
-                        value: '20',
-                        subtitle: 'Max: 20',
-                      ),
-                      StatsContainer(
-                        icon: SimpleLineIcons.cloud_upload,
-                        title: 'Upload',
-                        value: '26.1',
-                        subtitle: 'mbps',
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                SizedBox(height: 10),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 20, right: 25, left: 25),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TitleTextAndValue(
-                            title: 'IMEL',
-                            value: '862624050960255',
-                          ),
-                          TitleTextAndValue(
-                            title: 'IP Address',
-                            value: '225.912.92.2',
-                            end: true,
-                          ),
-                        ],
-                      ),
-                    ],
+                  NetworkStatusAndSwitcher(
+                    controller: homeController,
                   ),
-                )
-              ],
+                  Spacer(),
+                  // Padding(
+                  //   padding: const EdgeInsets.all(8.0),
+                  //   child: Row(
+                  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //     children: [
+                  //       ElevatedButton(
+                  //         onPressed: () {},
+                  //         style: ElevatedButton.styleFrom(
+                  //             backgroundColor: AppColor.container,
+                  //             padding: EdgeInsets.symmetric(
+                  //                 horizontal: 10, vertical: 10),
+                  //             shape: RoundedRectangleBorder(
+                  //                 borderRadius: BorderRadius.circular(10))),
+                  //         child: Column(
+                  //           children: [
+                  //             Icon(
+                  //               Icons.dialpad,
+                  //               size: 20,
+                  //             ).paddingOnly(bottom: 5),
+                  //             Text(
+                  //               "USSD",
+                  //               style: Theme.of(context)
+                  //                   .textTheme
+                  //                   .labelSmall!
+                  //                   .copyWith(),
+                  //             ),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
+                  GetBuilder(
+                      init: homeController,
+                      builder: (context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              StatsContainer(
+                                icon: SimpleLineIcons.cloud_download,
+                                title: 'Download',
+                                value: homeController.connectedDevices?.dlSpeed
+                                        .replaceAll(RegExp('[^0-9.]'), '') ??
+                                    "0",
+                                subtitle: homeController
+                                        .connectedDevices?.dlSpeed
+                                        .replaceAll(RegExp('[^A-Za-z/]'), '') ??
+                                    "kb/s",
+                              ),
+                              StatsContainer(
+                                icon: SimpleLineIcons.screen_desktop,
+                                title: 'Connected Devices',
+                                value:
+                                    '${homeController.connectedDevices?.dhcp_list_info.length ?? 0}',
+                                subtitle:
+                                    'Max: ${homeController.connectedDevices?.maxNum4 ?? "0"}',
+                              ),
+                              StatsContainer(
+                                icon: SimpleLineIcons.cloud_upload,
+                                title: 'Upload',
+                                value: homeController.connectedDevices?.ulSpeed
+                                        .replaceAll(RegExp('[^0-9.]'), '') ??
+                                    "0",
+                                subtitle: homeController
+                                        .connectedDevices?.ulSpeed
+                                        .replaceAll(RegExp('[^A-Za-z/]'), '') ??
+                                    "kb/s",
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 20, right: 25, left: 25),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GetBuilder(
+                                init: homeController,
+                                builder: (context) {
+                                  return TitleTextAndValue(
+                                    title: 'IMEL',
+                                    value: homeController
+                                            .connectedDevices?.module_imei ??
+                                        '*************',
+                                  );
+                                }),
+                            GetBuilder(
+                                init: homeController,
+                                builder: (context) {
+                                  return TitleTextAndValue(
+                                    title: 'IP Address',
+                                    value: homeController
+                                            .connectedDevices?.lanIp ??
+                                        '***.***.**.**',
+                                    end: true,
+                                  );
+                                }),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -238,7 +275,10 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
                         //   onChanged: (value) {},
                         // ),
                         Text(
-                          controller.networkD?.network_type_str ?? '4G',
+                          controller.data_switch.value == "0"
+                              ? "offline"
+                              : controller.networkD?.network_type_str ??
+                                  'offline',
                           style: Theme.of(context)
                               .textTheme
                               .labelSmall!
@@ -253,10 +293,19 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
                     child: IconButton.filled(
                         enableFeedback: true,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColor.dim,
+                          backgroundColor: controller.data_switch == "1"
+                              ? Colors.green
+                              : AppColor.dim,
                         ),
-                        onPressed: () {},
-                        icon: Icon(Icons.wifi_rounded))),
+                        onPressed: () {
+                          controller.toggleDataMode();
+                        },
+                        icon: Icon(
+                          Icons.wifi_rounded,
+                          color: controller.data_switch == "1"
+                              ? Colors.white
+                              : null,
+                        ))),
               ],
             ),
           );
