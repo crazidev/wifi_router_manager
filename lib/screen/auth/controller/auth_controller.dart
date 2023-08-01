@@ -16,9 +16,13 @@ import '../../../core/logger.dart';
 class AuthController extends GetxController {
   late FetchTokenModal data;
   String sessionID = '';
-  RxString errorMsg = 'Hello how are'.obs;
-  TextEditingController password = TextEditingController();
+  RxString errorMsg = RxString('');
+  var isLoading = false.obs;
+  TextEditingController password = TextEditingController(text: 'Smart');
   Future<SharedPreferences> prefs = SharedPreferences.getInstance();
+  final ValueChanged<String> stateChange;
+
+  AuthController({required this.stateChange});
 
   /// fetch token
   Future<Response> fetchToken() async {
@@ -35,8 +39,15 @@ class AuthController extends GetxController {
   }
 
   login() async {
+    if (password.text == '') {
+      errorMsg.value = 'Password Required';
+      return;
+    }
+
     await fetchToken().then((value) {
-      if (value.statusCode == 200) {}
+      if (value.statusCode != 200) {}
+
+      errorMsg.value = '';
       data = FetchTokenModal.fromMap(value.data);
 
       /// try logging in
@@ -48,22 +59,24 @@ class AuthController extends GetxController {
         'sessionId': '',
         'passwd': encryptPassword(data.token + password.text),
       }, printLogs: true).then((value) async {
-        var data = LoginModel.fromMap(value.data);
-
         /// Check if login failed
-        if (value.data['login_fail'] == 'fail') {
+        if (value.data['login_fail'] == null) {
+          errorMsg.value = '';
+          var data = LoginModel.fromMap(value.data);
+
+          /// save session ID to local storage if login was successful
+          if (await prefs.then((value) =>
+              value.setString(AppConstant.sessionID, data.sessionId))) {
+            Logger().log('SessionID successfully saved');
+            stateChange('login_successful');
+          }
+        } else {
           errorMsg.value = 'Remaining times: ${value.data['login_times']}';
           Logger().log('Login Failed');
-          return;
         }
-
-        /// save session ID to local storage if login was successful
-        if (await prefs.then((value) =>
-            value.setString(AppConstant.sessionID, data.sessionId))) {
-          Logger().log('SessionID successfully saved');
-        }
-        ;
       });
+    }).onError((error, stackTrace) {
+      errorMsg.value = 'Failed to fetch authentication token';
     });
   }
 }

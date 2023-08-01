@@ -9,6 +9,8 @@ import 'package:router_manager/components/stats_container.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:router_manager/components/icon_con_with_title.dart';
 import 'package:router_manager/components/title_text_and_value.dart';
+import 'package:router_manager/core/custom_navigator.dart';
+import 'package:router_manager/screen/auth/login.dart';
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 class HomeScreen extends StatelessWidget {
@@ -54,6 +56,7 @@ class HomeScreen extends StatelessWidget {
                     IconContainerWithTitle(
                       icon: Icons.logout,
                       title: 'Logout',
+                      onTap: () => MyRouter().replace(context, LoginScreen()),
                     ),
                   ],
                 ),

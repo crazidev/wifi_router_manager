@@ -8,18 +8,20 @@ class IconContainerWithTitle extends StatelessWidget {
     required this.icon,
     this.title,
     this.iconColor,
+    this.onTap,
   });
 
   final IconData icon;
   final String? title;
   final Color? iconColor;
+  final Function()? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         ElevatedButton(
-          onPressed: () {},
+          onPressed: onTap,
           style: ElevatedButton.styleFrom(
               backgroundColor: AppColor.container,
               fixedSize: const Size(40, 50),

@@ -13,8 +13,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_vector_icons: ^2.0.0
-  get: ^4.6.5
+  get: ^5.0.0-release-candidate-3
   google_fonts: ^5.1.0
+  modal_bottom_sheet: ^3.0.0-pre
   native_dio_adapter: ^1.0.0+1
   shared_preferences: ^2.2.0
 

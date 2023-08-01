@@ -3,15 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:router_manager/components/shake_widget.dart';
 import 'package:router_manager/core/app_export.dart';
+import 'package:router_manager/core/custom_navigator.dart';
+import 'package:router_manager/dashhboard_navigator.dart';
 import 'package:router_manager/screen/auth/controller/auth_controller.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
 
-  AuthController authController = Get.put(AuthController());
-
   @override
   Widget build(BuildContext context) {
+    final AuthController authController =
+        Get.put(AuthController(stateChange: (state) {
+      if (state == "login_successful") {
+        MyRouter().replace(context, DashboardNavigator());
+      }
+    }));
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Padding(
@@ -44,25 +51,29 @@ class LoginScreen extends StatelessWidget {
                 // color: AppColor.primary,
               ),
             ).marginOnly(bottom: 40),
-            Obx(() => ShakeWidget(
-                  child: Text(
-                    authController.errorMsg.value,
-                    style: TextStyle(color: Colors.red),
+            Obx(
+              () => TextField(
+                autofocus: false,
+                controller: authController.password,
+                decoration: InputDecoration(
+                  filled: true,
+                  labelText: 'Password',
+                  isDense: true,
+                  errorText: authController.errorMsg.value == ''
+                      ? null
+                      : authController.errorMsg.value,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                )),
-            TextField(
-              autofocus: false,
-              controller: authController.password,
-              decoration: InputDecoration(
-                filled: true,
-                labelText: 'Password',
-                isDense: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  fillColor: AppColor.container,
                 ),
-                fillColor: AppColor.container,
-              ),
-            ).marginOnly(bottom: 20),
+                onChanged: (value) {
+                  if (authController.errorMsg.value != '') {
+                    authController.errorMsg.value = '';
+                  }
+                },
+              ).marginOnly(bottom: 20),
+            ),
             ElevatedButton(
                 onPressed: () {
                   authController.login();
