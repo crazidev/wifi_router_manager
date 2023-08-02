@@ -5,11 +5,11 @@ import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/data/api_client.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:router_manager/core/app_constant.dart';
-import 'package:router_manager/data/model/response/blacklist_devices.dart';
-import 'package:router_manager/data/model/response/ussd_response_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/model/response/connected_devices_model.dart';
 import 'package:router_manager/data/model/response/sms_model.dart';
+import 'package:router_manager/data/model/response/blacklist_devices.dart';
+import 'package:router_manager/data/model/response/ussd_response_model.dart';
 import 'package:router_manager/data/model/response/network_details_model.dart';
 
 // ignore_for_file: non_constant_identifier_names
@@ -168,7 +168,14 @@ class HomeController extends GetxController {
       "sessionId": sessionID,
     }, printLogs: true).then((value) {
       UssdModel res = UssdModel.fromMap(value.data);
-
+      var hexString = res.message;
+      List<String> splitted = [];
+      for (int i = 0; i < hexString.length; i = i + 2) {
+        splitted.add(hexString.substring(i, i + 2));
+      }
+      String ascii = List.generate(splitted.length,
+          (i) => String.fromCharCode(int.parse(splitted[i], radix: 16))).join();
+      print('${ascii}');
       Logger().log('USSD request fetched');
     });
   }
