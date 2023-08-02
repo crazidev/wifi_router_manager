@@ -6,6 +6,7 @@ import 'package:router_manager/data/api_client.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:router_manager/core/app_constant.dart';
 import 'package:router_manager/data/model/response/blacklist_devices.dart';
+import 'package:router_manager/data/model/response/ussd_response_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/model/response/connected_devices_model.dart';
 import 'package:router_manager/data/model/response/sms_model.dart';
@@ -20,7 +21,7 @@ class HomeController extends GetxController {
     timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) {
       fetch();
     });
-    timer2 = Timer.periodic(const Duration(seconds: 3), (timer) {
+    timer2 = Timer.periodic(const Duration(milliseconds: 1500), (timer) {
       getConnetedDevices();
     });
     super.onReady();
@@ -57,7 +58,7 @@ class HomeController extends GetxController {
     await fetchNetworkDetails();
     await fetchDataSwitch();
     fetchBlacklist();
-    update();
+    // update();
     if (refreshController.isRefresh) refreshController.refreshCompleted();
   }
 
@@ -82,7 +83,7 @@ class HomeController extends GetxController {
       if (networkD.toString() != NetworkDModel.fromMap(value.data).toString()) {
         networkD = NetworkDModel.fromMap(value.data);
         update(['network_details']);
-        Logger().log('Refreshing network details');
+        // Logger().log('Refreshing network details');
       }
     });
   }
@@ -92,7 +93,7 @@ class HomeController extends GetxController {
         printLogs: false).then((value) {
       // if (data_switch.value != value.data['data_switch']) {
       data_switch.value = value.data['dialMode'] ?? '';
-      Logger().log('Updating Data Switch');
+      // Logger().log('Updating Data Switch');
       // }
     });
   }
@@ -118,7 +119,9 @@ class HomeController extends GetxController {
       "sessionId": sessionID,
     }, printLogs: false).then((value) {
       connectedDevices = ConnectedDModel.fromMap(value.data);
-      Logger().log('Fetching connected devices');
+
+      update(['stats']);
+      // Logger().log('Fetching connected devices');
     });
   }
 
@@ -142,7 +145,42 @@ class HomeController extends GetxController {
       "sessionId": sessionID,
     }, printLogs: false).then((value) {
       blacklistDModel = BlacklistDModel.fromMap(value.data);
-      Logger().log('Fetching blacklist devices');
+      // Logger().log('Fetching blacklist devices');
+    });
+  }
+
+  sendUSSD(value) async {
+    return await ApiClient().postData({
+      "cmd": 350,
+      "ussd_code": value,
+      "subcmd": "",
+      "method": "POST",
+      "sessionId": sessionID,
+    }, printLogs: true).then((value) {
+      Logger().log('USSD request sent');
+    });
+  }
+
+  fetchUSSD() async {
+    return await ApiClient().postData({
+      "cmd": 350,
+      "method": "GET",
+      "sessionId": sessionID,
+    }, printLogs: true).then((value) {
+      UssdModel res = UssdModel.fromMap(value.data);
+
+      Logger().log('USSD request fetched');
+    });
+  }
+
+  cancelUSSD() async {
+    return await ApiClient().postData({
+      "cmd": 350,
+      "subcmd": "1",
+      "method": "POST",
+      "sessionId": sessionID,
+    }, printLogs: false).then((value) {
+      Logger().log('USSD request canceled');
     });
   }
 

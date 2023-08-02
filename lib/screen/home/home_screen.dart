@@ -125,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   NetworkStatusAndSwitcher(controller: homeController),
                   Spacer(),
                   GetBuilder(
+                      id: 'stats',
                       init: homeController,
                       builder: (context) {
                         return Padding(
@@ -170,32 +171,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: EdgeInsets.only(bottom: 20, right: 25, left: 25),
                     child: Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GetBuilder(
-                                init: homeController,
-                                builder: (context) {
-                                  return TitleTextAndValue(
+                        GetBuilder(
+                            init: homeController,
+                            builder: (context) {
+                              return Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TitleTextAndValue(
                                     title: 'IMEL',
                                     value: homeController
                                             .connectedDevices?.module_imei ??
                                         '*************',
-                                  );
-                                }),
-                            GetBuilder(
-                                init: homeController,
-                                builder: (context) {
-                                  return TitleTextAndValue(
+                                  ),
+                                  TitleTextAndValue(
                                     title: 'IP Address',
                                     value: homeController
                                             .connectedDevices?.lanIp ??
                                         '***.***.**.**',
                                     end: true,
-                                  );
-                                }),
-                          ],
-                        ),
+                                  ),
+                                ],
+                              );
+                            }),
                       ],
                     ),
                   )
@@ -227,7 +225,8 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
             endRadius: 90.0,
             duration: Duration(milliseconds: 2000),
             showTwoGlows: true,
-            // animate: false,
+            glowColor: Colors.white,
+            animate: controller.data_switch.value == "0" ? false : true,
             repeatPauseDuration: Duration(milliseconds: 400),
             shape: BoxShape.circle,
             child: Stack(
@@ -237,7 +236,7 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
                   child: Container(
                     width: 130,
                     height: 130,
-                    color: AppColor.container,
+                    color: AppColor.container.withOpacity(.8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,

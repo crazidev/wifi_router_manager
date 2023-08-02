@@ -105,74 +105,82 @@ class SMSscreen extends StatelessWidget {
                 return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Obx(
-                      () => ListView(
-                        children:
-                            List.from(homeController.smsList!.sms_list.map((e) {
-                          var data = utf8.decode(base64Decode(e));
+                      () {
+                        var i = selectedList.value;
+                        return homeController.smsList?.sms_total == null ||
+                                homeController.smsList?.sms_total == "0"
+                            ? const SizedBox()
+                            : ListView(
+                                children: List.from(
+                                    homeController.smsList!.sms_list.map((e) {
+                                  var data = utf8.decode(base64Decode(e));
 
-                          var others =
-                              "${data.split(' ').elementAt(0)} ${data.split(' ').elementAt(1)} ${data.split(' ').elementAt(2)} ${data.split(' ').elementAt(3)} ${data.split(' ').elementAt(4)} ";
+                                  var others =
+                                      "${data.split(' ').elementAt(0)} ${data.split(' ').elementAt(1)} ${data.split(' ').elementAt(2)} ${data.split(' ').elementAt(3)} ${data.split(' ').elementAt(4)} ";
 
-                          var selected = false;
+                                  var selected = false;
 
-                          selectedList.forEach((e) {
-                            if (e == data.split(' ').elementAt(0)) {
-                              selected = true;
-                            }
-                          });
+                                  selectedList.forEach((e) {
+                                    if (e == data.split(' ').elementAt(0)) {
+                                      selected = true;
+                                    }
+                                  });
 
-                          return DeviceList(
-                            selectedList: selectedList,
-                            data: {
-                              'id': data.split(' ').elementAt(0),
-                              'message': data.substring(others.length),
-                              'number': data.split(' ').elementAt(2),
-                              'date': data.split(' ').elementAt(3) +
-                                  " " +
-                                  data.split(' ').elementAt(4),
-                              'selected': selected,
-                              'read': data.split(' ').elementAt(1) == "1"
-                                  ? true
-                                  : false,
-                            },
-                            onDelete: (id) {
-                              showDialog(
-                                  context: context,
-                                  builder: (_) => CupertinoAlertDialog(
-                                        title: Text('Confirm'),
-                                        content: Text(
-                                            'Do you want to delete this sms?'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text('Cancel'),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              homeController.deleteSMS(id);
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text('Delete'),
-                                          ),
-                                        ],
-                                      ));
-                            },
-                            onclick: () {
-                              if (selectedList.isNotEmpty) {
-                                if (selected) {
-                                  selectedList
-                                      .remove(data.split(' ').elementAt(0));
-                                } else {
-                                  selectedList
-                                      .add(data.split(' ').elementAt(0));
-                                }
-                              }
-                            },
-                          ).marginOnly(bottom: 10);
-                        })),
-                      ),
+                                  return DeviceList(
+                                    selectedList: selectedList,
+                                    data: {
+                                      'id': data.split(' ').elementAt(0),
+                                      'message': data.substring(others.length),
+                                      'number': data.split(' ').elementAt(2),
+                                      'date': data.split(' ').elementAt(3) +
+                                          " " +
+                                          data.split(' ').elementAt(4),
+                                      'selected': selected,
+                                      'read':
+                                          data.split(' ').elementAt(1) == "1"
+                                              ? true
+                                              : false,
+                                    },
+                                    onDelete: (id) {
+                                      showDialog(
+                                          context: context,
+                                          builder: (_) => CupertinoAlertDialog(
+                                                title: Text('Confirm'),
+                                                content: Text(
+                                                    'Do you want to delete this sms?'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      homeController
+                                                          .deleteSMS(id);
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: Text('Delete'),
+                                                  ),
+                                                ],
+                                              ));
+                                    },
+                                    onclick: () {
+                                      if (selectedList.isNotEmpty) {
+                                        if (selected) {
+                                          selectedList.remove(
+                                              data.split(' ').elementAt(0));
+                                        } else {
+                                          selectedList.add(
+                                              data.split(' ').elementAt(0));
+                                        }
+                                      }
+                                    },
+                                  ).marginOnly(bottom: 10);
+                                })),
+                              );
+                      },
                     ));
               }),
         ],

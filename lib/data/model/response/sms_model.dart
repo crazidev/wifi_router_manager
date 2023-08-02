@@ -1,6 +1,8 @@
 import 'dart:convert';
 
-class SmsModel {
+import 'package:equatable/equatable.dart';
+
+class SmsModel extends Equatable {
   final bool success;
   final int cmd;
   final List sms_list;
@@ -95,4 +97,8 @@ class SmsModel {
         receive_full.hashCode ^
         send_full.hashCode;
   }
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => [sms_list, sms_unread, sms_total, receive_full];
 }

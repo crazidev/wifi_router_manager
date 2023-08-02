@@ -1,9 +1,58 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:router_manager/core/app_export.dart';
 
 class Helper {
+  void showPreloader(context, {String? title}) {
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => Material(
+              color: Colors.transparent,
+              child: Center(
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: AppColor.container,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      title == null
+                          ? SizedBox()
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 20),
+                              child: Text(title),
+                            ),
+                      // TextButton(
+                      //     onPressed: () {
+                      //       Get.back();
+                      //     },
+                      //     child: Text("Dismise"))
+                    ],
+                  ),
+                ),
+              ),
+            ));
+  }
+
+  void hidePreloader() {
+    Get.back();
+  }
+
+  void closeKeyboard() {
+    if (WidgetsBinding.instance.window.viewInsets.bottom > 0.0) {
+      print("Keyboard closed");
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+  }
+
   showBottomsheet({
     required Widget child,
     required BuildContext context,

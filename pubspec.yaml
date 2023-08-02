@@ -10,6 +10,7 @@ dependencies:
   avatar_glow: ^2.0.2
   crypto: ^3.0.3
   dio: ^5.3.1
+  equatable: ^2.0.5
   flutter:
     sdk: flutter
   flutter_vector_icons: ^2.0.0

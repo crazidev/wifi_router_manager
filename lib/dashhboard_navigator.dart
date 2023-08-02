@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:router_manager/components/custom_key_pad.dart';
 import 'package:router_manager/core/app_export.dart';
+import 'package:router_manager/core/helper.dart';
+import 'package:router_manager/data/api_client.dart';
 import 'package:router_manager/screen/sms/sms_screen.dart';
 import 'package:router_manager/screen/devices/devices.dart';
 import 'package:router_manager/screen/home/home_screen.dart';
@@ -30,7 +32,7 @@ class DashboardNavigator extends StatelessWidget {
                       Devices(),
                       SMSscreen(),
                       ContactScreen(),
-                      Placeholder()
+                      const Placeholder()
                     ],
                   )),
             ),
@@ -55,14 +57,15 @@ class ContactScreen extends StatelessWidget {
     super.key,
   });
   var code = [].obs;
-  TextEditingController textcontroller = TextEditingController();
+  TextEditingController textcontroller = TextEditingController(text: "*556#");
+  HomeController controller = Get.find<HomeController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
-          Spacer(),
+          const Spacer(),
           Obx(
             () => Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -88,7 +91,7 @@ class ContactScreen extends StatelessWidget {
                               onPressed: () {
                                 code.removeLast();
                               },
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.backspace,
                               ))
                       ],
@@ -108,21 +111,28 @@ class ContactScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  Helper().showPreloader(context);
+                  await controller.sendUSSD(textcontroller.text);
+                  await controller.fetchUSSD();
+                  controller.cancelUSSD();
+                  Navigator.pop(context);
+                },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: AppColor.container,
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10))),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.call,
                       size: 20,
                     ).paddingOnly(bottom: 5),
                     Text(
-                      "Dail",
+                      "USSD",
                       style: Theme.of(context).textTheme.labelSmall!.copyWith(),
                     ),
                   ],
@@ -130,7 +140,7 @@ class ContactScreen extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
         ],
       ),
     );
