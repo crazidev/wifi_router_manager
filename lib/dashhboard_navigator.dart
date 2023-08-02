@@ -1,14 +1,20 @@
-import 'package:get/get.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:router_manager/components/custom_key_pad.dart';
+import 'package:router_manager/components/custom_narbar.dart';
+import 'package:router_manager/controller/home_controller.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/core/helper.dart';
 import 'package:router_manager/data/api_client.dart';
-import 'package:router_manager/screen/sms/sms_screen.dart';
 import 'package:router_manager/screen/devices/devices.dart';
 import 'package:router_manager/screen/home/home_screen.dart';
-import 'package:router_manager/components/custom_narbar.dart';
-import 'package:router_manager/controller/home_controller.dart';
+import 'package:router_manager/screen/sms/sms_screen.dart';
 
 class DashboardNavigator extends StatelessWidget {
   DashboardNavigator({super.key});
@@ -57,12 +63,13 @@ class ContactScreen extends StatelessWidget {
     super.key,
   });
   var code = [].obs;
-  TextEditingController textcontroller = TextEditingController(text: "*556#");
+  TextEditingController textcontroller = TextEditingController();
   HomeController controller = Get.find<HomeController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Column(
         children: [
           const Spacer(),
@@ -112,11 +119,14 @@ class ContactScreen extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () async {
+                  if (textcontroller.text == "") return;
                   Helper().showPreloader(context);
                   await controller.sendUSSD(textcontroller.text);
                   await controller.fetchUSSD();
-                  controller.cancelUSSD();
                   Navigator.pop(context);
+                  showDialog(
+                      context: context,
+                      builder: (_) => UssdDialog(controller: controller));
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: AppColor.container,
@@ -143,6 +153,80 @@ class ContactScreen extends StatelessWidget {
           const SizedBox(height: 30),
         ],
       ),
+    );
+  }
+}
+
+class UssdDialog extends StatelessWidget {
+  UssdDialog({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+
+  final HomeController controller;
+  TextEditingController reply = TextEditingController();
+  var isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColor.bg,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(controller.ussdRes.trim()).marginOnly(bottom: 20),
+          if (controller.ussd_reply)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: TextField(
+                textInputAction: TextInputAction.send,
+                controller: reply,
+                onSubmitted: (value) async {
+                  if (reply.text == "") return;
+                  Navigator.pop(context);
+                  controller.sendUSSD(reply.text.toString().trim());
+                  await controller.fetchUSSD();
+                  showDialog(
+                      context: controller.context,
+                      builder: (_) => UssdDialog(controller: controller));
+                },
+                decoration: InputDecoration(
+                  fillColor: AppColor.bottomNavBG,
+                  border: InputBorder.none,
+                  filled: true,
+                  isDense: true,
+                ),
+              ),
+            ),
+        ],
+      ),
+      contentPadding: EdgeInsets.only(
+        top: 20,
+        right: 20,
+        left: 20,
+      ),
+      actionsPadding: EdgeInsets.only(bottom: 10, right: 5),
+      actions: [
+        TextButton(
+            onPressed: () {
+              controller.cancelUSSD();
+              Navigator.pop(controller.context);
+            },
+            child: Text('Close')),
+        if (controller.ussd_reply)
+          TextButton(
+              onPressed: () async {
+                if (reply.text == "") return;
+                Navigator.pop(context);
+                controller.sendUSSD(reply.text.toString().trim());
+                await controller.fetchUSSD();
+                showDialog(
+                    context: controller.context,
+                    builder: (_) => UssdDialog(controller: controller));
+              },
+              child: Text('Reply'))
+      ],
     );
   }
 }

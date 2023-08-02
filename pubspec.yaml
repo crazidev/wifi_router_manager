@@ -16,6 +16,7 @@ dependencies:
   flutter_vector_icons: ^2.0.0
   get: ^5.0.0-release-candidate-3
   google_fonts: ^5.1.0
+  hex: ^0.2.0
   modal_bottom_sheet: ^3.0.0-pre
   native_dio_adapter: ^1.0.0+1
   pull_to_refresh: ^2.0.0

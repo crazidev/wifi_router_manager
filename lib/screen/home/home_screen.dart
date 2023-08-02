@@ -37,171 +37,163 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    homeController.context = context;
     return Scaffold(
-      body: SmartRefresher(
-        onRefresh: () {
-          // homeController.fetch();
-        },
-        controller: homeController.refreshController,
-        child: Stack(
-          children: [
-            Positioned(
-              bottom: 0,
-              child: Image.asset(
-                'assets/Vector_2646.jpg',
-                // fit: BoxFit.,
-                opacity: AlwaysStoppedAnimation(0.2),
-                width: 1300,
-                // height: ,
+      body: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            child: Image.asset(
+              'assets/Vector_2646.jpg',
+              // fit: BoxFit.,
+              opacity: AlwaysStoppedAnimation(0.2),
+              width: 1300,
+              // height: ,
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconContainerWithTitle(
+                      icon: Icons.power_settings_new,
+                      title: 'Power off',
+                    ),
+                    IconContainerWithTitle(
+                      icon: Icons.restart_alt,
+                      title: 'Restart',
+                    ),
+                    IconContainerWithTitle(
+                      icon: Icons.flight,
+                      title: 'Flight',
+                    ),
+                    IconContainerWithTitle(
+                      icon: Icons.logout,
+                      title: 'Logout',
+                      onTap: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
               ),
             ),
-            SafeArea(
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
                   padding: const EdgeInsets.all(10),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
-                      IconContainerWithTitle(
-                        icon: Icons.power_settings_new,
-                        title: 'Power off',
-                      ),
-                      IconContainerWithTitle(
-                        icon: Icons.restart_alt,
-                        title: 'Restart',
-                      ),
-                      IconContainerWithTitle(
-                        icon: Icons.flight,
-                        title: 'Flight',
-                      ),
-                      IconContainerWithTitle(
-                        icon: Icons.logout,
-                        title: 'Logout',
-                        onTap: () => Navigator.pop(context),
+                      TitleTextAndValue(
+                        title: 'Network Provider',
+                        value: 'MTN-NG',
+                        // end: true,
+                      ).paddingOnly(right: 20),
+                      TitleTextAndValue(
+                        title: 'Signal Strength',
+                        value: '-110dBm',
+                        // end: true,
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        TitleTextAndValue(
-                          title: 'Network Provider',
-                          value: 'MTN-NG',
-                          // end: true,
-                        ).paddingOnly(right: 20),
-                        TitleTextAndValue(
-                          title: 'Signal Strength',
-                          value: '-110dBm',
-                          // end: true,
+                Spacer(),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 0, horizontal: 80),
+                  child: Text(
+                    "MTN Boardband\n4G Router",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.electrolize(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      // color: AppColor.primary,
+                    ),
+                  ),
+                ),
+                NetworkStatusAndSwitcher(controller: homeController),
+                Spacer(),
+                GetBuilder(
+                    id: 'stats',
+                    init: homeController,
+                    builder: (context) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            StatsContainer(
+                              icon: SimpleLineIcons.cloud_download,
+                              title: 'Download',
+                              value: homeController.connectedDevices?.dlSpeed
+                                      .replaceAll(RegExp('[^0-9.]'), '') ??
+                                  "0",
+                              subtitle: homeController.connectedDevices?.dlSpeed
+                                      .replaceAll(RegExp('[^A-Za-z/]'), '') ??
+                                  "kb/s",
+                            ),
+                            StatsContainer(
+                              icon: SimpleLineIcons.screen_desktop,
+                              title: 'Connected Devices',
+                              value:
+                                  '${homeController.connectedDevices?.dhcp_list_info.length ?? 0}',
+                              subtitle:
+                                  'Max: ${homeController.connectedDevices?.maxNum4 ?? "0"}',
+                            ),
+                            StatsContainer(
+                              icon: SimpleLineIcons.cloud_upload,
+                              title: 'Upload',
+                              value: homeController.connectedDevices?.ulSpeed
+                                      .replaceAll(RegExp('[^0-9.]'), '') ??
+                                  "0",
+                              subtitle: homeController.connectedDevices?.ulSpeed
+                                      .replaceAll(RegExp('[^A-Za-z/]'), '') ??
+                                  "kb/s",
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    }),
+                SizedBox(height: 10),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 20, right: 25, left: 25),
+                  child: Column(
+                    children: [
+                      GetBuilder(
+                          init: homeController,
+                          builder: (context) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                TitleTextAndValue(
+                                  title: 'IMEL',
+                                  value: homeController
+                                          .connectedDevices?.module_imei ??
+                                      '*************',
+                                ),
+                                TitleTextAndValue(
+                                  title: 'IP Address',
+                                  value:
+                                      homeController.connectedDevices?.lanIp ??
+                                          '***.***.**.**',
+                                  end: true,
+                                ),
+                              ],
+                            );
+                          }),
+                    ],
                   ),
-                  Spacer(),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 0, horizontal: 80),
-                    child: Text(
-                      "MTN Boardband\n4G Router",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.electrolize(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        // color: AppColor.primary,
-                      ),
-                    ),
-                  ),
-                  NetworkStatusAndSwitcher(controller: homeController),
-                  Spacer(),
-                  GetBuilder(
-                      id: 'stats',
-                      init: homeController,
-                      builder: (context) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              StatsContainer(
-                                icon: SimpleLineIcons.cloud_download,
-                                title: 'Download',
-                                value: homeController.connectedDevices?.dlSpeed
-                                        .replaceAll(RegExp('[^0-9.]'), '') ??
-                                    "0",
-                                subtitle: homeController
-                                        .connectedDevices?.dlSpeed
-                                        .replaceAll(RegExp('[^A-Za-z/]'), '') ??
-                                    "kb/s",
-                              ),
-                              StatsContainer(
-                                icon: SimpleLineIcons.screen_desktop,
-                                title: 'Connected Devices',
-                                value:
-                                    '${homeController.connectedDevices?.dhcp_list_info.length ?? 0}',
-                                subtitle:
-                                    'Max: ${homeController.connectedDevices?.maxNum4 ?? "0"}',
-                              ),
-                              StatsContainer(
-                                icon: SimpleLineIcons.cloud_upload,
-                                title: 'Upload',
-                                value: homeController.connectedDevices?.ulSpeed
-                                        .replaceAll(RegExp('[^0-9.]'), '') ??
-                                    "0",
-                                subtitle: homeController
-                                        .connectedDevices?.ulSpeed
-                                        .replaceAll(RegExp('[^A-Za-z/]'), '') ??
-                                    "kb/s",
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 20, right: 25, left: 25),
-                    child: Column(
-                      children: [
-                        GetBuilder(
-                            init: homeController,
-                            builder: (context) {
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  TitleTextAndValue(
-                                    title: 'IMEL',
-                                    value: homeController
-                                            .connectedDevices?.module_imei ??
-                                        '*************',
-                                  ),
-                                  TitleTextAndValue(
-                                    title: 'IP Address',
-                                    value: homeController
-                                            .connectedDevices?.lanIp ??
-                                        '***.***.**.**',
-                                    end: true,
-                                  ),
-                                ],
-                              );
-                            }),
-                      ],
-                    ),
-                  )
-                ],
-              ),
+                )
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
