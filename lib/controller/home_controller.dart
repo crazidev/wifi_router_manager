@@ -219,6 +219,26 @@ class HomeController extends GetxController {
     return decodedString;
   }
 
+  String convertFunction(String t) {
+    if (t.isEmpty) return "";
+
+    var a = ["0009", "0000"];
+    var n = a;
+
+    return t.replaceAllMapped(RegExp(r'([A-Fa-f0-9]{1,4})'), (match) {
+      if (!n.contains(match.group(0))) {
+        return hex2char(match.group(0)!);
+      } else {
+        return "";
+      }
+    });
+  }
+
+  String hex2char(String hex) {
+    var code = int.parse(hex, radix: 16);
+    return String.fromCharCode(code);
+  }
+
   cancelUSSD() async {
     return await ApiClient().postData({
       "cmd": 350,
