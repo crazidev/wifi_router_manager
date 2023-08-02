@@ -24,10 +24,10 @@ class LoginScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(30),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: size.height * 15 / 100),
+            // SizedBox(height: size.height * 15 / 100),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
