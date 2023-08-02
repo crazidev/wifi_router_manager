@@ -166,6 +166,17 @@ class HomeController extends GetxController {
     });
   }
 
+  setReadSMS(value) async {
+    return await ApiClient().postData({
+      "cmd": 12,
+      "index": value,
+      "method": "POST",
+      "sessionId": sessionID,
+    }, printLogs: true).then((value) {
+      Logger().log('SMS read updated');
+    });
+  }
+
   fetchUSSD() async {
     return await ApiClient().postData({
       "cmd": 350,

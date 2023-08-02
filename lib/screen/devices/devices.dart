@@ -33,6 +33,10 @@ class Devices extends StatelessWidget {
   ];
   HomeController homeController = Get.put(HomeController());
 
+  var blackList = [].obs;
+  var selectedList = [].obs;
+  var selectAll = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,23 +92,40 @@ class Devices extends StatelessWidget {
                                       'blocked': false,
                                     },
                                     onclick: () {},
+                                    onSwitch: (value) {},
                                   ).marginOnly(bottom: 10);
                                 })),
                               ),
-                              Column(
-                                children: List.from(homeController
-                                    .blacklistDModel!.datas.maclist
-                                    .map((e) {
-                                  return DeviceList(
-                                    data: {
-                                      'name': e.mac,
-                                      'selected': false,
-                                      'blocked': true,
-                                    },
-                                    onclick: () {},
-                                  ).marginOnly(bottom: 10);
-                                })),
-                              ),
+                              Builder(builder: (context) {
+                                return Column(
+                                  children: List.from(homeController
+                                      .blacklistDModel!.datas.maclist
+                                      .map((e) {
+                                    return DeviceList(
+                                      data: {
+                                        'name': e.mac,
+                                        'selected': false,
+                                        'blocked': true,
+                                      },
+                                      onclick: () {},
+                                      onSwitch: (value) {
+                                        // var blocked = false;
+                                        // blackList.forEach((element) {
+                                        //   if (element['mac'] == e.mac &&
+                                        //       element['blocked'] == true) {
+                                        //     blocked = true;
+                                        //   }
+                                        // });
+
+                                        // blackList.add(
+                                        //     {"mac": e.mac, "blocked": blocked});
+
+                                        // print(blackList.value);
+                                      },
+                                    ).marginOnly(bottom: 10);
+                                  })),
+                                );
+                              }),
                             ],
                           );
                         })),
@@ -120,10 +141,12 @@ class DeviceList extends StatelessWidget {
     super.key,
     this.data,
     required this.onclick,
+    required this.onSwitch,
   });
 
   final dynamic data;
   final Function() onclick;
+  final ValueChanged onSwitch;
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +184,10 @@ class DeviceList extends StatelessWidget {
                     width: 40,
                     child: FittedBox(
                         child: Switch(
-                            value: !data['blocked'], onChanged: (value) {}))),
+                            value: !data['blocked'],
+                            onChanged: (value) {
+                              onSwitch({value});
+                            }))),
               ],
             ),
             subtitle: data['blocked']

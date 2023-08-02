@@ -175,6 +175,30 @@ class SMSscreen extends StatelessWidget {
                                           selectedList.add(
                                               data.split(' ').elementAt(0));
                                         }
+                                      } else {
+                                        showDialog(
+                                            context: context,
+                                            builder: (_) => AlertDialog(
+                                                  title: Text(data
+                                                      .split(' ')
+                                                      .elementAt(2)),
+                                                  content: Text(data.substring(
+                                                      others.length)),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child: Text('Close'),
+                                                    ),
+                                                    // TextButton(
+                                                    //   onPressed: () {},
+                                                    //   child: Text('Reply'),
+                                                    // ),
+                                                  ],
+                                                ));
+                                        homeController.setReadSMS(
+                                            data.split(' ').elementAt(0));
                                       }
                                     },
                                   ).marginOnly(bottom: 10);
