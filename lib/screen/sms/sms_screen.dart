@@ -1,11 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:router_manager/core/app_export.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:router_manager/data/api_client.dart';
+import 'package:get/get.dart';
+import 'package:router_manager/core/app_export.dart';
 
 import '../../controller/home_controller.dart';
 
@@ -14,6 +13,7 @@ class SMSscreen extends StatelessWidget {
   SMSscreen({super.key});
 
   HomeController homeController = Get.put(HomeController());
+  get smsList => homeController.smsList!.sms_list.reversed;
 
   var selectedList = [].obs;
   var selectAll = false;
@@ -111,8 +111,7 @@ class SMSscreen extends StatelessWidget {
                                 homeController.smsList?.sms_total == "0"
                             ? const SizedBox()
                             : ListView(
-                                children: List.from(
-                                    homeController.smsList!.sms_list.map((e) {
+                                children: List.from(smsList.map((e) {
                                   var data = utf8.decode(base64Decode(e));
 
                                   var others =

@@ -1,20 +1,14 @@
-import 'package:get/get.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:avatar_glow/avatar_glow.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:smartrefresh/smartrefresh.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:router_manager/screen/auth/login.dart';
-import 'package:router_manager/core/color_constant.dart';
-import 'package:router_manager/dashhboard_navigator.dart';
-import 'package:router_manager/core/custom_navigator.dart';
-import 'package:router_manager/components/network_bar.dart';
-import 'package:router_manager/controller/home_controller.dart';
-import 'package:router_manager/components/stats_container.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:router_manager/components/icon_con_with_title.dart';
+import 'package:router_manager/components/network_bar.dart';
+import 'package:router_manager/components/stats_container.dart';
 import 'package:router_manager/components/title_text_and_value.dart';
+import 'package:router_manager/controller/home_controller.dart';
+import 'package:router_manager/core/color_constant.dart';
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 class HomeScreen extends StatefulWidget {
@@ -94,13 +88,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       TitleTextAndValue(
                         title: 'Network Provider',
                         value: 'MTN-NG',
-                        // end: true,
-                      ).paddingOnly(right: 20),
-                      TitleTextAndValue(
-                        title: 'Signal Strength',
-                        value: '-110dBm',
-                        // end: true,
-                      ),
+                        end: true,
+                      )
                     ],
                   ),
                 ),

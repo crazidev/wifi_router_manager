@@ -1,9 +1,8 @@
-import 'package:get/get.dart';
-import 'core/app_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:router_manager/screen/auth/login.dart';
+
+import 'core/app_export.dart';
 
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 

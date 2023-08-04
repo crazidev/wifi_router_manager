@@ -1,41 +1,26 @@
-import 'package:get/get.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
-import 'package:router_manager/core/app_export.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:get/get.dart';
+import 'package:router_manager/core/app_export.dart';
 
 import '../../controller/home_controller.dart';
 
 class Devices extends StatelessWidget {
   Devices({super.key});
 
-  List devices = [
-    {
-      'name': 'MacBook Pro',
-      'ip': '192.333.452.2',
-      'mac': '34:dd:d4:4f:45',
-      'selected': false,
-      'blocked': false,
-    },
-    {
-      'name': 'Crazibeat Phone',
-      'ip': '192.333.452.2',
-      'mac': '34:dd:d4:4f:45',
-      'selected': false,
-      'blocked': true,
-    },
-    {
-      'name': 'Richie Phone',
-      'ip': '192.333.452.2',
-      'mac': '34:dd:d4:4f:45',
-      'selected': false,
-      'blocked': true,
-    },
-  ];
   HomeController homeController = Get.put(HomeController());
 
-  var blackList = [].obs;
-  var selectedList = [].obs;
-  var selectAll = false;
+  var selectedBlackList = [].obs;
+  var selectedWhiteList = [].obs;
+  // var selectAll = false;
+
+  var isExpanded = false.obs;
+  // get thisDevice async => await NetworkInterface.list(
+  //                                 type: InternetAddressType.IPv4,
+  //                                 includeLinkLocal: true)
+  //                             .then((value) =>
+  //                                 value.last.addresses.first.address);
 
   @override
   Widget build(BuildContext context) {
@@ -46,86 +31,184 @@ class Devices extends StatelessWidget {
         automaticallyImplyLeading: false,
         toolbarHeight: 70,
         centerTitle: false,
-        title: Text("Devices (5)").marginOnly(top: 10),
+        title: const Text("Devices (5)").marginOnly(top: 10),
         actions: [
-          // IconButton(onPressed: () {}, icon: Icon(Ionicons.trash_bin_outline)),
+          Obx(() => Row(
+                children: [
+                  if (selectedBlackList.isNotEmpty) ...[
+                    TextButton(
+                        onPressed: () async {},
+                        child: Text("Unblock (${selectedBlackList.length})"))
+                  ],
+                  if (selectedWhiteList.isNotEmpty) ...[
+                    TextButton(
+                        onPressed: () async {
+                          // print();
+                        },
+                        child: Text("Block (${selectedWhiteList.length})"))
+                  ]
+                ],
+              ))
         ],
         bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(5),
             child: Divider(
               color: AppColor.container,
-            ),
-            preferredSize: Size.fromHeight(5)),
+            )),
       ),
       body: SingleChildScrollView(
         child: Stack(
           children: [
-            Positioned(
-              bottom: 0,
-              right: -300,
-              child: Image.asset(
-                'assets/5076404.jpg',
-                // fit: BoxFit.,
-                opacity: AlwaysStoppedAnimation(0.2),
-                width: 1400,
-                // height: ,
-              ),
-            ),
             Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: homeController.connectedDevices?.dhcp_list_info == null
-                    ? SizedBox()
+                    ? const SizedBox()
                     : GetBuilder(
                         init: homeController,
-                        builder: (context) {
+                        builder: (_) {
                           return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Column(
-                                children: List.from(homeController
-                                    .connectedDevices!.dhcp_list_info
-                                    .map((e) {
-                                  return DeviceList(
-                                    data: {
-                                      'name': e.hostname,
-                                      'ip': e.ip,
-                                      'mac': e.mac,
-                                      'selected': false,
-                                      'blocked': false,
-                                    },
-                                    onclick: () {},
-                                    onSwitch: (value) {},
-                                  ).marginOnly(bottom: 10);
-                                })),
-                              ),
-                              Builder(builder: (context) {
-                                return Column(
+                              Obx(
+                                () => Column(
                                   children: List.from(homeController
-                                      .blacklistDModel!.datas.maclist
+                                      .connectedDevices!.dhcp_list_info
                                       .map((e) {
+                                    var selected = false;
+
+                                    selectedWhiteList.forEach((e2) {
+                                      if (e.mac == e2) {
+                                        selected = true;
+                                      }
+                                    });
                                     return DeviceList(
                                       data: {
-                                        'name': e.mac,
-                                        'selected': false,
-                                        'blocked': true,
+                                        'name': e.hostname,
+                                        'ip': e.ip,
+                                        'mac': e.mac,
+                                        'selected': selected,
+                                        'blocked': false,
                                       },
-                                      onclick: () {},
-                                      onSwitch: (value) {
-                                        // var blocked = false;
-                                        // blackList.forEach((element) {
-                                        //   if (element['mac'] == e.mac &&
-                                        //       element['blocked'] == true) {
-                                        //     blocked = true;
-                                        //   }
-                                        // });
+                                      onclick: () {
+                                        if (selectedWhiteList.isNotEmpty) {
+                                          if (selected) {
+                                            selectedWhiteList.remove(e.mac);
+                                          } else {
+                                            selectedWhiteList.add(e.mac);
+                                          }
+                                        }
+                                      },
+                                      onSwitch: (value) {},
+                                      onLongPress: () {
+                                        if (selectedBlackList.isNotEmpty) {
+                                          selectedBlackList.clear();
+                                        }
 
-                                        // blackList.add(
-                                        //     {"mac": e.mac, "blocked": blocked});
-
-                                        // print(blackList.value);
+                                        selectedWhiteList.add(e.mac);
                                       },
                                     ).marginOnly(bottom: 10);
                                   })),
-                                );
-                              }),
+                                ),
+                              ),
+                              Obx(
+                                () => homeController
+                                            .blacklistDModel?.datas.maclist ==
+                                        null
+                                    ? const SizedBox()
+                                    : ExpansionPanelList(
+                                        expandedHeaderPadding: EdgeInsets.zero,
+                                        animationDuration:
+                                            const Duration(milliseconds: 300),
+                                        elevation: 0,
+                                        expansionCallback: (index, value) {
+                                          isExpanded.value = !isExpanded.value;
+                                        },
+                                        children: [
+                                          ExpansionPanel(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              isExpanded: isExpanded.value,
+                                              headerBuilder:
+                                                  (BuildContext context,
+                                                      bool expanded) {
+                                                return Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "Blocked (${homeController.blacklistDModel!.datas.maclist.length})",
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .titleLarge,
+                                                    ).marginOnly(
+                                                        top: 20, bottom: 10),
+                                                  ],
+                                                );
+                                              },
+                                              body: Obx(() {
+                                                var i = selectedBlackList.value;
+                                                return Column(children: [
+                                                  for (var i = 0;
+                                                      i <
+                                                          homeController
+                                                              .blacklistDModel!
+                                                              .datas
+                                                              .maclist
+                                                              .length;
+                                                      i++)
+                                                    Builder(builder: (context) {
+                                                      var data = homeController
+                                                          .blacklistDModel!
+                                                          .datas
+                                                          .maclist
+                                                          .elementAt(i);
+
+                                                      var selected = false;
+
+                                                      selectedBlackList
+                                                          .forEach((e) {
+                                                        if (e == data.mac) {
+                                                          selected = true;
+                                                        }
+                                                      });
+                                                      return DeviceList(
+                                                        data: {
+                                                          'name': data.mac,
+                                                          'selected': selected,
+                                                          'blocked': true,
+                                                        },
+                                                        onclick: () {
+                                                          if (selectedBlackList
+                                                              .isNotEmpty) {
+                                                            if (selected) {
+                                                              selectedBlackList
+                                                                  .remove(
+                                                                      data.mac);
+                                                            } else {
+                                                              selectedBlackList
+                                                                  .add(
+                                                                      data.mac);
+                                                            }
+                                                          }
+                                                        },
+                                                        onSwitch: (value) {},
+                                                        onLongPress: () {
+                                                          if (selectedWhiteList
+                                                              .isNotEmpty) {
+                                                            selectedWhiteList
+                                                                .clear();
+                                                          }
+                                                          selectedBlackList
+                                                              .add(data.mac);
+                                                        },
+                                                      ).marginOnly(bottom: 10);
+                                                    }),
+                                                ]);
+                                              })),
+                                        ],
+                                      ),
+                              ),
                             ],
                           );
                         })),
@@ -142,31 +225,37 @@ class DeviceList extends StatelessWidget {
     this.data,
     required this.onclick,
     required this.onSwitch,
+    required this.onLongPress,
   });
 
   final dynamic data;
   final Function() onclick;
   final ValueChanged onSwitch;
+  final Function() onLongPress;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         AnimatedContainer(
-            duration: Duration(milliseconds: 400),
+            duration: const Duration(milliseconds: 400),
             width: data['selected'] ? 30 : 0,
             margin: EdgeInsets.only(right: data['selected'] ? 10 : 0),
-            child: data['selected'] ? Icon(Ionicons.checkmark_circle) : null),
+            child: data['selected']
+                ? const Icon(Ionicons.checkmark_circle)
+                : null),
         Expanded(
           child: ListTile(
             onTap: onclick,
+            onLongPress: onLongPress,
             selected: data['selected'],
-            contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             tileColor: AppColor.container,
             iconColor: AppColor.dim,
-            leading: Icon(
+            leading: const Icon(
               SimpleLineIcons.screen_desktop,
             ),
             title: Text(
@@ -178,16 +267,19 @@ class DeviceList extends StatelessWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                    onPressed: () {}, icon: Icon(Ionicons.trash_outline)),
-                SizedBox(
-                    width: 40,
-                    child: FittedBox(
-                        child: Switch(
-                            value: !data['blocked'],
-                            onChanged: (value) {
-                              onSwitch({value});
-                            }))),
+                // IconButton(
+                //     onPressed: () {}, icon: Icon(Ionicons.trash_outline)),
+                AvatarGlow(
+                  endRadius: 20,
+                  animate: data['blocked'] ? false : true,
+                  glowColor: AppColor.primary,
+                  showTwoGlows: false,
+                  child: Icon(
+                    Icons.circle_sharp,
+                    color: data['blocked'] ? AppColor.dim : AppColor.primary,
+                    size: 10,
+                  ),
+                )
               ],
             ),
             subtitle: data['blocked']

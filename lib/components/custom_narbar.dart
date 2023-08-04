@@ -1,8 +1,9 @@
-import 'package:get/get.dart';
-import '../core/app_export.dart';
 import 'package:flutter/material.dart';
-import 'package:router_manager/controller/home_controller.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:get/get.dart';
+import 'package:router_manager/controller/home_controller.dart';
+
+import '../core/app_export.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int index;

@@ -1,18 +1,18 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:router_manager/core/app_export.dart';
-import 'package:router_manager/data/api_client.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:router_manager/core/app_constant.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../data/model/response/connected_devices_model.dart';
-import 'package:router_manager/data/model/response/sms_model.dart';
+import 'package:router_manager/core/app_export.dart';
+import 'package:router_manager/data/api_client.dart';
 import 'package:router_manager/data/model/response/blacklist_devices.dart';
-import 'package:router_manager/data/model/response/ussd_response_model.dart';
 import 'package:router_manager/data/model/response/network_details_model.dart';
-import 'package:hex/hex.dart';
+import 'package:router_manager/data/model/response/sms_model.dart';
+import 'package:router_manager/data/model/response/ussd_response_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/model/response/connected_devices_model.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
@@ -43,6 +43,7 @@ class HomeController extends GetxController {
   RefreshController refreshController =
       RefreshController(initialRefresh: false);
   SmsModel? smsList;
+
   NetworkDModel? networkD;
   ConnectedDModel? connectedDevices;
   BlacklistDModel? blacklistDModel;
@@ -191,6 +192,7 @@ class HomeController extends GetxController {
       } else {
         ussd_reply = false;
       }
+
       Logger().log('USSD request fetched');
     }).onError((error, stackTrace) {
       cancelUSSD();
@@ -217,26 +219,6 @@ class HomeController extends GetxController {
     }
 
     return decodedString;
-  }
-
-  String convertFunction(String t) {
-    if (t.isEmpty) return "";
-
-    var a = ["0009", "0000"];
-    var n = a;
-
-    return t.replaceAllMapped(RegExp(r'([A-Fa-f0-9]{1,4})'), (match) {
-      if (!n.contains(match.group(0))) {
-        return hex2char(match.group(0)!);
-      } else {
-        return "";
-      }
-    });
-  }
-
-  String hex2char(String hex) {
-    var code = int.parse(hex, radix: 16);
-    return String.fromCharCode(code);
   }
 
   cancelUSSD() async {
