@@ -227,7 +227,8 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
             duration: Duration(milliseconds: 2000),
             showTwoGlows: true,
             glowColor: Colors.white,
-            animate: controller.data_switch.value == "0" ? false : true,
+            animate: false,
+            // animate: controller.data_switch.value == "0" ? false : true,
             repeatPauseDuration: Duration(milliseconds: 400),
             shape: BoxShape.circle,
             child: Stack(

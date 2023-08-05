@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
 import 'package:router_manager/core/app_export.dart';
+import 'package:router_manager/core/helper.dart';
 
 import '../../controller/home_controller.dart';
 
@@ -13,14 +18,18 @@ class Devices extends StatelessWidget {
 
   var selectedBlackList = [].obs;
   var selectedWhiteList = [].obs;
+  var deviceIP = '';
   // var selectAll = false;
 
   var isExpanded = false.obs;
-  // get thisDevice async => await NetworkInterface.list(
-  //                                 type: InternetAddressType.IPv4,
-  //                                 includeLinkLocal: true)
-  //                             .then((value) =>
-  //                                 value.last.addresses.first.address);
+
+  setIP() async {
+    await NetworkInterface.list(
+            type: InternetAddressType.IPv4, includeLinkLocal: true)
+        .then((value) {
+      deviceIP = value.last.addresses.first.address;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +50,35 @@ class Devices extends StatelessWidget {
                     TextButton(
                         onPressed: () async {
                           if (selectedBlackList.isNotEmpty) {
-                            homeController.unblockDevices(selectedBlackList);
+                            showDialog(
+                                context: context,
+                                builder: (_) => CupertinoAlertDialog(
+                                      content: Text(
+                                          'Are you sure you unblock this ${selectedBlackList.length > 1 ? "devices" : "device"}??'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            Helper().showPreloader(context,
+                                                title: "Restarting Router");
+                                            selectedBlackList.clear();
+                                            homeController.unblockDevices(
+                                                selectedBlackList);
+                                            Timer(const Duration(seconds: 3),
+                                                () {
+                                              Navigator.pop(context);
+                                            });
+                                          },
+                                          child: const Text('Unblock'),
+                                        ),
+                                      ],
+                                    ));
                           }
                         },
                         child: Text("Unblock (${selectedBlackList.length})"))
@@ -50,7 +87,35 @@ class Devices extends StatelessWidget {
                     TextButton(
                         onPressed: () async {
                           if (selectedWhiteList.isNotEmpty) {
-                            homeController.blockDevices(selectedWhiteList);
+                            showDialog(
+                                context: context,
+                                builder: (_) => CupertinoAlertDialog(
+                                      content: Text(
+                                          'Are you sure you block this ${selectedWhiteList.length > 1 ? "devices" : "device"}?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            Helper().showPreloader(context,
+                                                title: "Restarting Router");
+                                            selectedWhiteList.clear();
+                                            homeController.blockDevices(
+                                                selectedWhiteList);
+                                            Timer(const Duration(seconds: 3),
+                                                () {
+                                              Navigator.pop(context);
+                                            });
+                                          },
+                                          child: const Text('Block'),
+                                        ),
+                                      ],
+                                    ));
                           }
                         },
                         child: Text("Block (${selectedWhiteList.length})"))
@@ -84,6 +149,10 @@ class Devices extends StatelessWidget {
                                       .map((e) {
                                     var selected = false;
 
+                                    if (deviceIP == '') {
+                                      setIP();
+                                    }
+
                                     selectedWhiteList.forEach((e2) {
                                       if (e.mac == e2) {
                                         selected = true;
@@ -97,6 +166,9 @@ class Devices extends StatelessWidget {
                                         'selected': selected,
                                         'blocked': false,
                                       },
+                                      lable: deviceIP == e.ip
+                                          ? "This device"
+                                          : null,
                                       onclick: () {
                                         if (selectedWhiteList.isNotEmpty) {
                                           if (selected) {
@@ -235,12 +307,14 @@ class DeviceList extends StatelessWidget {
     required this.onclick,
     required this.onSwitch,
     required this.onLongPress,
+    this.lable,
   });
 
   final dynamic data;
   final Function() onclick;
   final ValueChanged onSwitch;
   final Function() onLongPress;
+  final String? lable;
 
   @override
   Widget build(BuildContext context) {
@@ -280,7 +354,8 @@ class DeviceList extends StatelessWidget {
                 //     onPressed: () {}, icon: Icon(Ionicons.trash_outline)),
                 AvatarGlow(
                   endRadius: 20,
-                  animate: data['blocked'] ? false : true,
+                  animate: false,
+                  // animate: data['blocked'] ? false : true,
                   glowColor: Colors.green,
                   showTwoGlows: false,
                   child: Icon(
@@ -302,12 +377,31 @@ class DeviceList extends StatelessWidget {
                           color: AppColor.dim,
                         ),
                       ),
-                      Text(
-                        "${data['mac']}",
-                        style: TextStyle(
-                          color: AppColor.dim,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "${data['mac']}",
+                            style: TextStyle(
+                              color: AppColor.dim,
+                            ),
+                          ),
+                        ],
                       ),
+                      if (lable != null)
+                        Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              color: AppColor.primary.withOpacity(0.1)),
+                          child: Text(
+                            lable!,
+                            style: TextStyle(
+                              fontSize: 8,
+                            ),
+                          ),
+                        )
                     ],
                   ),
           ),

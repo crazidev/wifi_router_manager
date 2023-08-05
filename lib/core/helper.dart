@@ -14,7 +14,7 @@ class Helper {
               color: Colors.transparent,
               child: Center(
                 child: Container(
-                  width: 100,
+                  width: title != null ? 150 : 100,
                   height: 100,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
@@ -28,7 +28,11 @@ class Helper {
                           ? SizedBox()
                           : Padding(
                               padding: const EdgeInsets.only(top: 20),
-                              child: Text(title),
+                              child: Text(
+                                title,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.labelSmall,
+                              ),
                             ),
                       // TextButton(
                       //     onPressed: () {
