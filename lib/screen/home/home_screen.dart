@@ -1,4 +1,5 @@
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
@@ -66,9 +67,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Flight',
                     ),
                     IconContainerWithTitle(
-                      icon: Icons.logout,
+                      icon: Ionicons.log_out_outline,
                       title: 'Logout',
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (_) => CupertinoAlertDialog(
+                                  content: Text('Do you want to logout?'),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text('Cancel')),
+                                    TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text('Logout'))
+                                  ],
+                                ));
+                      },
                     ),
                   ],
                 ),
@@ -226,10 +246,6 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
                           index: int.tryParse(
                               controller.networkD?.signal_lvl ?? "0"),
                         ).paddingOnly(bottom: 10, top: 10),
-                        // Switch(
-                        //   value: true,
-                        //   onChanged: (value) {},
-                        // ),
                         Text(
                           controller.data_switch.value == "0"
                               ? "offline"
@@ -239,7 +255,41 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
                               .textTheme
                               .labelSmall!
                               .copyWith(),
-                        )
+                        ),
+                        // SizedBox(
+                        //   width: 40,
+                        //   child: FittedBox(
+                        //     child: Switch(
+                        //       value: controller.data_switch.value == "0"
+                        //           ? false
+                        //           : true,
+                        //       onChanged: (value) {
+                        //         controller.data_switch == "0"
+                        //             ? controller.toggleDataMode()
+                        //             : showDialog(
+                        //                 context: context,
+                        //                 builder: (_) => CupertinoAlertDialog(
+                        //                       content: Text(
+                        //                           'Do you want to turn off mobile data?'),
+                        //                       actions: [
+                        //                         TextButton(
+                        //                             onPressed: () {
+                        //                               Navigator.pop(context);
+                        //                             },
+                        //                             child: Text('Cancel')),
+                        //                         TextButton(
+                        //                             onPressed: () {
+                        //                               Navigator.pop(context);
+                        //                               controller
+                        //                                   .toggleDataMode();
+                        //                             },
+                        //                             child: Text('Proceed'))
+                        //                       ],
+                        //                     ));
+                        //       },
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -250,11 +300,31 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
                         enableFeedback: true,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: controller.data_switch == "1"
-                              ? Colors.green
+                              ? null
                               : AppColor.dim,
                         ),
                         onPressed: () {
-                          controller.toggleDataMode();
+                          controller.data_switch == "0"
+                              ? controller.toggleDataMode()
+                              : showDialog(
+                                  context: context,
+                                  builder: (_) => CupertinoAlertDialog(
+                                        content: Text(
+                                            'Do you want to turn off mobile data?'),
+                                        actions: [
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text('Cancel')),
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                                controller.toggleDataMode();
+                                              },
+                                              child: Text('Proceed'))
+                                        ],
+                                      ));
                         },
                         icon: Icon(
                           Icons.wifi_rounded,

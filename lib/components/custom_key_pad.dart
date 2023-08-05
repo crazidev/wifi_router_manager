@@ -39,15 +39,16 @@ class CustomKeyPad extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
-        width: Get.height * 37 / 100,
+        width: 300,
         child: GridView.builder(
           itemCount: numbers.length,
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
-              crossAxisSpacing: 6.0,
+              crossAxisSpacing: 5.0,
               mainAxisSpacing: 0.0,
-              childAspectRatio: 1.4),
+              childAspectRatio: 1.5),
           itemBuilder: (BuildContext context, int index) {
             return IconButton(
               splashColor:

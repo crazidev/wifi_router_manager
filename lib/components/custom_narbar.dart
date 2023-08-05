@@ -25,24 +25,46 @@ class CustomBottomNavBar extends StatelessWidget {
       unselectedItemColor: AppColor.dim,
       type: BottomNavigationBarType.fixed,
       items: [
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
             icon: Padding(
               padding: EdgeInsets.symmetric(vertical: 7),
               child: Icon(FontAwesome.dashboard),
             ),
             label: ''),
-        BottomNavigationBarItem(icon: Icon(Ionicons.link), label: ''),
+        BottomNavigationBarItem(
+            icon: GetBuilder(
+                init: controller,
+                didChangeDependencies: (state) {
+                  print("Dependency changed");
+                },
+                builder: (context) {
+                  return Badge(
+                      label: Text(controller
+                              .connectedDevices?.dhcp_list_info.length
+                              .toString() ??
+                          "0"),
+                      isLabelVisible: controller.connectedDevices
+                                      ?.dhcp_list_info.length ==
+                                  null ||
+                              controller
+                                  .connectedDevices!.dhcp_list_info.isEmpty
+                          ? false
+                          : true,
+                      child: const Icon(Ionicons.link));
+                }),
+            label: ''),
         BottomNavigationBarItem(
             icon: Obx(() => Badge(
                   label: Text(controller.sms_unread.value),
                   isLabelVisible:
                       controller.sms_unread.value == "0" ? false : true,
-                  child: Icon(Ionicons.chatbubble_ellipses),
+                  child: const Icon(Ionicons.chatbubble_ellipses),
                 )),
             label: ''),
-        BottomNavigationBarItem(
-            icon: Icon(FontAwesome.address_book), label: ''),
-        BottomNavigationBarItem(icon: Icon(SimpleLineIcons.settings), label: '')
+        const BottomNavigationBarItem(
+            icon: Icon(Ionicons.keypad_outline), label: ''),
+        const BottomNavigationBarItem(
+            icon: Icon(SimpleLineIcons.settings), label: '')
       ],
       onTap: (index) {
         onTap(index);

@@ -1,9 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:router_manager/components/custom_key_pad.dart';
@@ -11,7 +8,6 @@ import 'package:router_manager/components/custom_narbar.dart';
 import 'package:router_manager/controller/home_controller.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/core/helper.dart';
-import 'package:router_manager/data/api_client.dart';
 import 'package:router_manager/screen/devices/devices.dart';
 import 'package:router_manager/screen/home/home_screen.dart';
 import 'package:router_manager/screen/sms/sms_screen.dart';
@@ -78,31 +74,22 @@ class ContactScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          code.join(),
-                          style: Theme.of(context).textTheme.displaySmall,
-                        ),
-                      ],
+                    TextFormField(
+                      controller: textcontroller,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.displaySmall,
+                      decoration: InputDecoration(
+                          isDense: true, border: InputBorder.none),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (code.isNotEmpty)
-                          IconButton(
-                              // splashRadius: 100,
-                              // style:
-                              //     IconButton.styleFrom(fixedSize: Size(70, 70)),
-                              onPressed: () {
-                                code.removeLast();
-                              },
-                              icon: const Icon(
-                                Icons.backspace,
-                              ))
-                      ],
-                    )
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   children: [
+                    //     Text(
+                    //       code.join(),
+                    //       style: Theme.of(context).textTheme.displaySmall,
+                    //     ),
+                    //   ],
+                    // ),
                   ],
                 )),
           ),
@@ -114,40 +101,68 @@ class ContactScreen extends StatelessWidget {
             onComplete: () {},
             otp: code,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Stack(
             children: [
-              ElevatedButton(
-                onPressed: () async {
-                  if (textcontroller.text == "") return;
-                  Helper().showPreloader(context);
-                  await controller.sendUSSD(textcontroller.text);
-                  await controller.fetchUSSD();
-                  Navigator.pop(context);
-                  showDialog(
-                      context: context,
-                      builder: (_) => UssdDialog(controller: controller));
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.container,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.call,
-                      size: 20,
-                    ).paddingOnly(bottom: 5),
-                    Text(
-                      "USSD",
-                      style: Theme.of(context).textTheme.labelSmall!.copyWith(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (textcontroller.text == "") return;
+                      Helper().showPreloader(context);
+                      await controller.sendUSSD(textcontroller.text);
+                      await controller.fetchUSSD();
+                      Navigator.pop(context);
+                      showDialog(
+                          context: context,
+                          builder: (_) => UssdDialog(controller: controller));
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.container,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        fixedSize: Size(50, 62),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40))),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.call,
+                          size: 25,
+                        ),
+                        // Text(
+                        //   "USSD",
+                        //   style: Theme.of(context)
+                        //       .textTheme
+                        //       .labelSmall!
+                        //       .copyWith(),
+                        // ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+              Positioned(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 170),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // if (code.isNotEmpty)
+                      IconButton(
+                          onPressed: () {
+                            code.removeLast();
+                            textcontroller.text = code.join();
+                          },
+                          icon: const Icon(
+                            Icons.backspace,
+                          ))
+                    ],
+                  ),
+                ),
+              )
             ],
           ),
           const SizedBox(height: 30),
@@ -175,7 +190,9 @@ class UssdDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(controller.ussdRes.trim()).marginOnly(bottom: 20),
+          SelectableText(
+            controller.ussdRes.trim(),
+          ).marginOnly(bottom: 20),
           if (controller.ussd_reply)
             ClipRRect(
               borderRadius: BorderRadius.circular(10),

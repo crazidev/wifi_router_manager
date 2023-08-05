@@ -31,19 +31,27 @@ class Devices extends StatelessWidget {
         automaticallyImplyLeading: false,
         toolbarHeight: 70,
         centerTitle: false,
-        title: const Text("Devices (5)").marginOnly(top: 10),
+        title: Text(
+                "Devices (${homeController.connectedDevices?.dhcp_list_info.length ?? "0"})")
+            .marginOnly(top: 10),
         actions: [
           Obx(() => Row(
                 children: [
                   if (selectedBlackList.isNotEmpty) ...[
                     TextButton(
-                        onPressed: () async {},
+                        onPressed: () async {
+                          if (selectedBlackList.isNotEmpty) {
+                            homeController.unblockDevices(selectedBlackList);
+                          }
+                        },
                         child: Text("Unblock (${selectedBlackList.length})"))
                   ],
                   if (selectedWhiteList.isNotEmpty) ...[
                     TextButton(
                         onPressed: () async {
-                          // print();
+                          if (selectedWhiteList.isNotEmpty) {
+                            homeController.blockDevices(selectedWhiteList);
+                          }
                         },
                         child: Text("Block (${selectedWhiteList.length})"))
                   ]
@@ -110,8 +118,9 @@ class Devices extends StatelessWidget {
                                   })),
                                 ),
                               ),
-                              Obx(
-                                () => homeController
+                              Obx(() {
+                                var i = selectedBlackList;
+                                return homeController
                                             .blacklistDModel?.datas.maclist ==
                                         null
                                     ? const SizedBox()
@@ -127,7 +136,7 @@ class Devices extends StatelessWidget {
                                           ExpansionPanel(
                                               backgroundColor:
                                                   Colors.transparent,
-                                              isExpanded: isExpanded.value,
+                                              isExpanded: true,
                                               headerBuilder:
                                                   (BuildContext context,
                                                       bool expanded) {
@@ -207,8 +216,8 @@ class Devices extends StatelessWidget {
                                                 ]);
                                               })),
                                         ],
-                                      ),
-                              ),
+                                      );
+                              }),
                             ],
                           );
                         })),
@@ -272,11 +281,11 @@ class DeviceList extends StatelessWidget {
                 AvatarGlow(
                   endRadius: 20,
                   animate: data['blocked'] ? false : true,
-                  glowColor: AppColor.primary,
+                  glowColor: Colors.green,
                   showTwoGlows: false,
                   child: Icon(
                     Icons.circle_sharp,
-                    color: data['blocked'] ? AppColor.dim : AppColor.primary,
+                    color: data['blocked'] ? AppColor.dim : Colors.green,
                     size: 10,
                   ),
                 )

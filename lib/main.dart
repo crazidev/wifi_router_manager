@@ -22,7 +22,9 @@ class MainApp extends StatelessWidget {
         useMaterial3: true,
         primaryColor: AppColor.primary,
         scaffoldBackgroundColor: AppColor.bg,
-        colorScheme: ColorScheme.dark(),
+        colorScheme: ColorScheme.dark(
+          primary: AppColor.primary,
+        ),
         textTheme: TextTheme(
           labelSmall: defaultFont,
           labelMedium: defaultFont,

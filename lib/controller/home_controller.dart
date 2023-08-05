@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -151,6 +152,57 @@ class HomeController extends GetxController {
       "sessionId": sessionID,
     }, printLogs: false).then((value) {
       blacklistDModel = BlacklistDModel.fromMap(value.data);
+      // Logger().log('Fetching blacklist devices');
+    });
+  }
+
+  blockDevices(List devices) {
+    BlacklistDModel? blacklist_devices = blacklistDModel;
+    blacklist_devices!.datas.maclist
+        .addAll(devices.map((e) => Maclist(mac: e)));
+
+    Map<String, dynamic> data = {
+      "datas": {
+        "maclist":
+            blacklist_devices.datas.maclist.map((e) => {"mac": e.mac}).toList(),
+        "macfilter": "deny"
+      },
+      "success": true,
+      "cmd": 405,
+      "method": "POST",
+      "sessionId": sessionID
+    };
+
+    ApiClient().postData(data, printLogs: true).then((value) {
+      // blacklistDModel = BlacklistDModel.fromMap(value.data);
+      // Logger().log('Fetching blacklist devices');
+    });
+  }
+
+  unblockDevices(List devices) {
+    BlacklistDModel? blacklist_devices = blacklistDModel;
+    devices.forEach((e) {
+      blacklist_devices!.datas.maclist.removeWhere((element) {
+        return element.mac == e;
+      });
+    });
+
+    Map<String, dynamic> data = {
+      "datas": {
+        "maclist": blacklist_devices!.datas.maclist
+            .map((e) => {"mac": e.mac})
+            .toList(),
+        // "macfilter": "deny"
+      },
+      "success": true,
+      "cmd": 405,
+      "method": "POST",
+      "sessionId": sessionID
+    };
+//
+    // print(data);
+    ApiClient().postData(jsonEncode(data), printLogs: true).then((value) {
+      // blacklistDModel = BlacklistDModel.fromMap(value.data);
       // Logger().log('Fetching blacklist devices');
     });
   }

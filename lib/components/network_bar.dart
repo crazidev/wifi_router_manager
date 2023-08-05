@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get_utils/get_utils.dart';
 import 'package:router_manager/core/app_export.dart';
 
-
 class NetworkBar extends StatelessWidget {
   const NetworkBar({
     super.key,
@@ -24,15 +23,15 @@ class NetworkBar extends StatelessWidget {
           height: () {
             switch (i) {
               case 0:
-                return 8.0;
+                return 5.0;
               case 1:
-                return 12.0;
+                return 8.0;
               case 2:
-                return 16.0;
+                return 12.0;
               case 3:
-                return 20.0;
+                return 15.0;
               case 4:
-                return 24.0;
+                return 18.0;
             }
           }(),
           width: 3,
