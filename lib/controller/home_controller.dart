@@ -192,7 +192,7 @@ class HomeController extends GetxController {
         "maclist": blacklist_devices!.datas.maclist
             .map((e) => {"mac": e.mac})
             .toList(),
-        // "macfilter": "deny"
+        "macfilter": "deny"
       },
       "success": true,
       "cmd": 405,
