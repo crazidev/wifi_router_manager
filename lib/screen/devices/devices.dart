@@ -502,7 +502,7 @@ class DeviceList extends StatelessWidget {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!data['selected'] && !data['blocked'])
+                  if (!data['selected'] || !data['blocked'])
                     IconButton(
                         onPressed: () {
                           showDialog(
