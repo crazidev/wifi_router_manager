@@ -1,4 +1,6 @@
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:cherry_toast/cherry_toast.dart';
+import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -54,18 +56,50 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconContainerWithTitle(
-                      icon: Icons.power_settings_new,
-                      title: 'Power off',
-                    ),
+                    // IconContainerWithTitle(
+                    //   icon: Icons.power_settings_new,
+                    //   title: 'Power off',
+                    // ),
                     IconContainerWithTitle(
                       icon: Icons.restart_alt,
-                      title: 'Restart',
+                      title: 'Reboot',
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (_) => CupertinoAlertDialog(
+                                  content:
+                                      Text('Do you want to reboot the device?'),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text('Cancel')),
+                                    TextButton(
+                                        onPressed: () {
+                                          homeController.restartDevice();
+                                          Navigator.pop(context);
+                                          Navigator.pop(context);
+                                          CherryToast.success(
+                                            title: Text(
+                                                'Rebooting, please wait...'),
+                                            shadowColor: AppColor.bg,
+                                            animationType:
+                                                AnimationType.fromTop,
+                                            animationDuration:
+                                                Duration(milliseconds: 700),
+                                            backgroundColor: AppColor.container,
+                                          ).show(context);
+                                        },
+                                        child: Text('Reboot'))
+                                  ],
+                                ));
+                      },
                     ),
-                    IconContainerWithTitle(
-                      icon: Icons.flight,
-                      title: 'Flight',
-                    ),
+                    // IconContainerWithTitle(
+                    //   icon: Icons.flight,
+                    //   title: 'Flight',
+                    // ),
                     IconContainerWithTitle(
                       icon: Ionicons.log_out_outline,
                       title: 'Logout',
@@ -257,40 +291,6 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
                               .labelSmall!
                               .copyWith(),
                         ),
-                        // SizedBox(
-                        //   width: 40,
-                        //   child: FittedBox(
-                        //     child: Switch(
-                        //       value: controller.data_switch.value == "0"
-                        //           ? false
-                        //           : true,
-                        //       onChanged: (value) {
-                        //         controller.data_switch == "0"
-                        //             ? controller.toggleDataMode()
-                        //             : showDialog(
-                        //                 context: context,
-                        //                 builder: (_) => CupertinoAlertDialog(
-                        //                       content: Text(
-                        //                           'Do you want to turn off mobile data?'),
-                        //                       actions: [
-                        //                         TextButton(
-                        //                             onPressed: () {
-                        //                               Navigator.pop(context);
-                        //                             },
-                        //                             child: Text('Cancel')),
-                        //                         TextButton(
-                        //                             onPressed: () {
-                        //                               Navigator.pop(context);
-                        //                               controller
-                        //                                   .toggleDataMode();
-                        //                             },
-                        //                             child: Text('Proceed'))
-                        //                       ],
-                        //                     ));
-                        //       },
-                        //     ),
-                        //   ),
-                        // ),
                       ],
                     ),
                   ),
@@ -305,27 +305,48 @@ class NetworkStatusAndSwitcher extends StatelessWidget {
                               : AppColor.dim,
                         ),
                         onPressed: () {
-                          controller.data_switch == "0"
-                              ? controller.toggleDataMode()
-                              : showDialog(
-                                  context: context,
-                                  builder: (_) => CupertinoAlertDialog(
-                                        content: Text(
-                                            'Do you want to turn off mobile data?'),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: Text('Cancel')),
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                controller.toggleDataMode();
-                                              },
-                                              child: Text('Proceed'))
-                                        ],
-                                      ));
+                          if (controller.data_switch == "0") {
+                            controller.toggleDataMode();
+                            CherryToast.success(
+                              title: Text(
+                                  'Your router is connected. Welcome back online!'),
+                              shadowColor: AppColor.bg,
+                              animationType: AnimationType.fromTop,
+                              animationDuration: Duration(milliseconds: 700),
+                              backgroundColor: AppColor.container,
+                            ).show(context);
+                          } else {
+                            showDialog(
+                                context: context,
+                                builder: (_) => CupertinoAlertDialog(
+                                      content: Text(
+                                          'Do you want to turn off mobile data?'),
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('Cancel')),
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              controller.toggleDataMode();
+                                              CherryToast.success(
+                                                title: Text(
+                                                    'Your router is disconnected, Goodbye for now!'),
+                                                shadowColor: AppColor.bg,
+                                                animationType:
+                                                    AnimationType.fromTop,
+                                                animationDuration:
+                                                    Duration(milliseconds: 700),
+                                                backgroundColor:
+                                                    AppColor.container,
+                                              ).show(context);
+                                            },
+                                            child: Text('Proceed'))
+                                      ],
+                                    ));
+                          }
                         },
                         icon: Icon(
                           Icons.wifi_rounded,

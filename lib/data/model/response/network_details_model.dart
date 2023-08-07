@@ -1,6 +1,8 @@
 import 'dart:convert';
 
-class NetworkDModel {
+import 'package:equatable/equatable.dart';
+
+class NetworkDModel extends Equatable {
   final bool success;
   final int cmd;
   final String? network_type_str;
@@ -232,4 +234,8 @@ class NetworkDModel {
         current_card_type.hashCode ^
         wanMode.hashCode;
   }
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => [];
 }

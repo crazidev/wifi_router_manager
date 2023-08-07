@@ -27,16 +27,13 @@ class CustomBottomNavBar extends StatelessWidget {
       items: [
         const BottomNavigationBarItem(
             icon: Padding(
-              padding: EdgeInsets.symmetric(vertical: 7),
-              child: Icon(FontAwesome.dashboard),
-            ),
+                padding: EdgeInsets.symmetric(vertical: 7),
+                child: Icon(FontAwesome.dashboard)),
             label: ''),
         BottomNavigationBarItem(
             icon: GetBuilder(
+                id: 'stats',
                 init: controller,
-                didChangeDependencies: (state) {
-                  print("Dependency changed");
-                },
                 builder: (context) {
                   return Badge(
                       label: Text(controller
@@ -55,11 +52,10 @@ class CustomBottomNavBar extends StatelessWidget {
             label: ''),
         BottomNavigationBarItem(
             icon: Obx(() => Badge(
-                  label: Text(controller.sms_unread.value),
-                  isLabelVisible:
-                      controller.sms_unread.value == "0" ? false : true,
-                  child: const Icon(Ionicons.chatbubble_ellipses),
-                )),
+                label: Text(controller.sms_unread.value),
+                isLabelVisible:
+                    controller.sms_unread.value == "0" ? false : true,
+                child: const Icon(Ionicons.chatbubble_ellipses))),
             label: ''),
         const BottomNavigationBarItem(
             icon: Icon(Ionicons.keypad_outline), label: ''),

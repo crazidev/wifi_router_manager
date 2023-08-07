@@ -4,5 +4,7 @@ class AppConstant {
 
   // SharePreference KEYS
   static String sessionID = 'SESSION_ID';
+  static String customDeviceName = 'CUSTOM_DEVICE_NAME';
+
   static String token = 'TOKEN';
 }

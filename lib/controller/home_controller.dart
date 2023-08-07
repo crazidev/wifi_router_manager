@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -20,12 +21,16 @@ import '../data/model/response/connected_devices_model.dart';
 class HomeController extends GetxController {
   @override
   Future<void> onReady() async {
+    // initialize the shared preference first
     prefs = await SharedPreferences.getInstance();
-    timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) {
-      fetch();
-    });
-    timer2 = Timer.periodic(const Duration(milliseconds: 1500), (timer) {
+
+    fetch();
+    getConnetedDevices();
+
+    timer = Timer.periodic(
+        const Duration(milliseconds: kDebugMode ? 3000 : 2000), (timer) {
       getConnetedDevices();
+      fetch();
     });
     super.onReady();
   }
@@ -35,7 +40,6 @@ class HomeController extends GetxController {
     refreshController.dispose();
     Logger().log('Controller closed');
     timer.cancel();
-    timer2.cancel();
     super.onClose();
   }
 
@@ -59,13 +63,13 @@ class HomeController extends GetxController {
   var ussdRes = '';
   var ussd_reply = false;
 
-  fetch() async {
-    Logger().log("Fetch function");
-    await fetchSMS();
-    await fetchNetworkDetails();
-    await fetchDataSwitch();
+  fetch() {
+    fetchSMS();
+    fetchNetworkDetails();
+    fetchDataSwitch();
     fetchBlacklist();
-    // update();
+    getConnetedDevices();
+
     if (refreshController.isRefresh) refreshController.refreshCompleted();
   }
 
@@ -77,10 +81,12 @@ class HomeController extends GetxController {
       "method": "GET",
       "sessionId": sessionID
     }, printLogs: false).then((value) {
-      // if (fist_time) {
-      smsList = SmsModel.fromMap(value.data);
-      sms_unread.value = smsList!.sms_unread;
-      update();
+      if (smsList.toString() != SmsModel.fromMap(value.data).toString()) {
+        print('Updating sms list');
+        smsList = SmsModel.fromMap(value.data);
+        sms_unread.value = smsList!.sms_unread;
+        update(['sms']);
+      }
     });
   }
 
@@ -90,7 +96,7 @@ class HomeController extends GetxController {
       if (networkD.toString() != NetworkDModel.fromMap(value.data).toString()) {
         networkD = NetworkDModel.fromMap(value.data);
         update(['network_details']);
-        // Logger().log('Refreshing network details');
+        Logger().log('Refreshing network details');
       }
     });
   }
@@ -98,10 +104,10 @@ class HomeController extends GetxController {
   fetchDataSwitch() async {
     ApiClient().postData({"cmd": 222, "method": "GET", "sessionId": sessionID},
         printLogs: false).then((value) {
-      // if (data_switch.value != value.data['data_switch']) {
-      data_switch.value = value.data['dialMode'] ?? '';
-      // Logger().log('Updating Data Switch');
-      // }
+      if (data_switch.value != value.data['data_switch']) {
+        data_switch.value = value.data['dialMode'] ?? '';
+        Logger().log('Updating Data Switch');
+      }
     });
   }
 
@@ -126,9 +132,7 @@ class HomeController extends GetxController {
       "sessionId": sessionID,
     }, printLogs: false).then((value) {
       connectedDevices = ConnectedDModel.fromMap(value.data);
-
-      update(['stats']);
-      // Logger().log('Fetching connected devices');
+      update(['stats', 'devices']);
     });
   }
 
@@ -139,7 +143,7 @@ class HomeController extends GetxController {
       "subcmd": 0,
       "method": "POST",
       "sessionId": sessionID,
-    }, printLogs: true).then((value) {
+    }, printLogs: false).then((value) {
       fetchSMS();
       Logger().log('Deletiing sms');
     });
@@ -214,7 +218,7 @@ class HomeController extends GetxController {
       "subcmd": "0",
       "method": "POST",
       "sessionId": sessionID,
-    }, printLogs: true).then((value) {
+    }, printLogs: false).then((value) {
       Logger().log('USSD request sent');
     });
   }
@@ -225,7 +229,7 @@ class HomeController extends GetxController {
       "index": value,
       "method": "POST",
       "sessionId": sessionID,
-    }, printLogs: true).then((value) {
+    }, printLogs: false).then((value) {
       Logger().log('SMS read updated');
     });
   }
@@ -235,7 +239,7 @@ class HomeController extends GetxController {
       "cmd": 350,
       "method": "GET",
       "sessionId": sessionID,
-    }, printLogs: true).then((value) async {
+    }, printLogs: false).then((value) async {
       if (value.data == "") return;
       UssdModel res = UssdModel.fromMap(value.data);
       ussdRes = decodeString(res.message);
@@ -251,8 +255,6 @@ class HomeController extends GetxController {
       Logger().log(stackTrace);
     });
   }
-
-  // 00500075006c007300650020004d00610069006e0020004100630063006f0075006e0074003a0020002d004e0031003900360031002e00340032002e002000410069007200740069006d0065002000420075006e0064006c0065003a004e00360030002e00320032002e00200044006100740061002000420061006c0061006e00630065003a0020003700300033002e00310031004d0042002e0020004400690061006c0020002a003400300036002a0032002300200026002000670065007400200075007000200074006f0020003100680072002000660072006500650020006f006e002000540069006b0074006f006b0020002b00200031002e0035004700420040004e003500300030002000440065007400610069006c0073002000760069006100200053004d0053002e000a000a
 
   String decodeString(String encodedString) {
     var decodedString = '';
@@ -282,6 +284,28 @@ class HomeController extends GetxController {
     }, printLogs: false).then((value) {
       Logger().log('USSD request canceled');
     });
+  }
+
+  restartDevice() async {
+    Logger().log('Restarting device');
+
+    ApiClient().postData({
+      "cmd": 6,
+      "rebootType": 1,
+      "method": "POST",
+      "sessionId": sessionID,
+    }, printLogs: false);
+  }
+
+  resetDevice() async {
+    Logger().log('Restarting device');
+
+    ApiClient().postData({
+      "cmd": 6,
+      "rebootType": 4,
+      "method": "POST",
+      "sessionId": sessionID,
+    }, printLogs: false);
   }
 
   var navIndex = 0.obs;

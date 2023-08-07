@@ -99,6 +99,5 @@ class SmsModel extends Equatable {
   }
 
   @override
-  // TODO: implement props
   List<Object?> get props => [sms_list, sms_unread, sms_total, receive_full];
 }

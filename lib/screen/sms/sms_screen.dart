@@ -101,6 +101,7 @@ class SMSscreen extends StatelessWidget {
           ),
           GetBuilder(
               init: homeController,
+              id: 'sms',
               builder: (_) {
                 return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
