@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cherry_toast/cherry_toast.dart';
+import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -69,6 +71,15 @@ class SMSscreen extends StatelessWidget {
                                       onPressed: () {
                                         homeController.deleteSMS('', all: true);
                                         Navigator.pop(context);
+                                        CherryToast.success(
+                                          title: Text(
+                                              'All SMS has been deleted succesfully'),
+                                          shadowColor: AppColor.bg,
+                                          animationType: AnimationType.fromTop,
+                                          animationDuration:
+                                              const Duration(milliseconds: 700),
+                                          backgroundColor: AppColor.container,
+                                        ).show(context);
                                       },
                                       child: Text('Delete'),
                                     ),
@@ -160,6 +171,22 @@ class SMSscreen extends StatelessWidget {
                                                       homeController
                                                           .deleteSMS(id);
                                                       Navigator.pop(context);
+
+                                                      CherryToast.success(
+                                                        title: Text(
+                                                            'Deleted succesfully'),
+                                                        shadowColor:
+                                                            AppColor.bg,
+                                                        animationType:
+                                                            AnimationType
+                                                                .fromTop,
+                                                        animationDuration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    700),
+                                                        backgroundColor:
+                                                            AppColor.container,
+                                                      ).show(context);
                                                     },
                                                     child: Text('Delete'),
                                                   ),
