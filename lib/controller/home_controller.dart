@@ -177,10 +177,12 @@ class HomeController extends GetxController {
       "sessionId": sessionID
     };
 
-    ApiClient().postData(data, printLogs: true).then((value) {
-      // blacklistDModel = BlacklistDModel.fromMap(value.data);
-      // Logger().log('Fetching blacklist devices');
-    });
+    print(data);
+
+    // ApiClient().postData(data, printLogs: true).then((value) {
+    //   // blacklistDModel = BlacklistDModel.fromMap(value.data);
+    //   // Logger().log('Fetching blacklist devices');
+    // });
   }
 
   unblockDevices(List devices) {

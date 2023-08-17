@@ -13,11 +13,12 @@ import 'package:router_manager/screen/sms/sms_screen.dart';
 import 'screen/ussd/ussd_screen.dart';
 
 class DashboardNavigator extends StatelessWidget {
-  DashboardNavigator({super.key});
-  HomeController controller = Get.put(HomeController());
+  const DashboardNavigator({super.key});
 
   @override
   Widget build(BuildContext context) {
+    HomeController controller = Get.put(HomeController());
+
     return Container(
       color: AppColor.bottomNavBG,
       child: Column(
