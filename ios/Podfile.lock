@@ -1,7 +1,11 @@
 PODS:
+  - awesome_notifications (0.0.5):
+    - Flutter
+    - IosAwnCore (= 0.7.3)
   - cupertino_http (0.0.1):
     - Flutter
   - Flutter (1.0.0)
+  - IosAwnCore (0.7.3)
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -10,12 +14,19 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - awesome_notifications (from `.symlinks/plugins/awesome_notifications/ios`)
   - cupertino_http (from `.symlinks/plugins/cupertino_http/ios`)
   - Flutter (from `Flutter`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
+SPEC REPOS:
+  trunk:
+    - IosAwnCore
+
 EXTERNAL SOURCES:
+  awesome_notifications:
+    :path: ".symlinks/plugins/awesome_notifications/ios"
   cupertino_http:
     :path: ".symlinks/plugins/cupertino_http/ios"
   Flutter:
@@ -26,8 +37,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
+  awesome_notifications: d63d9a25f126860f9a600850d99772237895b3ba
   cupertino_http: 5f8b1161107fe6c8d94a0c618735a033d93fa7db
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  IosAwnCore: 6494e0e174d49f04f513e8a002187be226889a37
   path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
   shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
 
