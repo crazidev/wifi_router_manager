@@ -32,7 +32,7 @@ class HomeController extends GetxController {
     getConnetedDevices();
 
     timer = Timer.periodic(
-        const Duration(milliseconds: kDebugMode ? 7000 : 5000), (timer) {
+        const Duration(milliseconds: kDebugMode ? 3000 : 2000), (timer) {
       getConnetedDevices();
       fetch();
     });
