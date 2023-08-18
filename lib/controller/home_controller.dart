@@ -1,6 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/model/response/connected_devices_model.dart';
 
 // ignore_for_file: non_constant_identifier_names
+/* cSpell:disable */
 
 class HomeController extends GetxController {
   @override
@@ -28,7 +32,7 @@ class HomeController extends GetxController {
     getConnetedDevices();
 
     timer = Timer.periodic(
-        const Duration(milliseconds: kDebugMode ? 3000 : 2000), (timer) {
+        const Duration(milliseconds: kDebugMode ? 7000 : 5000), (timer) {
       getConnetedDevices();
       fetch();
     });
@@ -83,6 +87,31 @@ class HomeController extends GetxController {
     }, printLogs: false).then((value) {
       if (smsList.toString() != SmsModel.fromMap(value.data).toString()) {
         print('Updating sms list');
+
+        List diff = [];
+        if (smsList != null) {
+          diff = SmsModel.fromMap(value.data)
+              .sms_list
+              .where((element) => !smsList!.sms_list.contains(element))
+              .toList();
+        }
+
+        for (var e in diff) {
+          var data = utf8.decode(base64Decode(e));
+          var others =
+              "${data.split(' ').elementAt(0)} ${data.split(' ').elementAt(1)} ${data.split(' ').elementAt(2)} ${data.split(' ').elementAt(3)} ${data.split(' ').elementAt(4)} ";
+
+          AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                  id: int.parse(data.split(' ').elementAt(0)),
+                  channelKey: 'MyWifi_Router',
+                  category: NotificationCategory.Message,
+                  notificationLayout: NotificationLayout.Messaging,
+                  title: data.split(' ').elementAt(2),
+                  body: data.substring(others.length),
+                  actionType: ActionType.Default));
+        }
+
         smsList = SmsModel.fromMap(value.data);
         sms_unread.value = smsList!.sms_unread;
         update(['sms']);
@@ -155,6 +184,9 @@ class HomeController extends GetxController {
       "method": "GET",
       "sessionId": sessionID,
     }, printLogs: false).then((value) {
+      // if (value.data == null) return;
+      if (value.data['datas'] == null) return;
+
       blacklistDModel = BlacklistDModel.fromMap(value.data);
       // Logger().log('Fetching blacklist devices');
     });
@@ -162,42 +194,53 @@ class HomeController extends GetxController {
 
   blockDevices(List devices) {
     BlacklistDModel? blacklist_devices = blacklistDModel;
-    blacklist_devices!.datas.maclist
-        .addAll(devices.map((e) => Maclist(mac: e)));
+    if (blacklist_devices != null) {
+      blacklist_devices.datas.maclist
+          .addAll(devices.map((e) => Maclist(mac: e)));
+    } else {}
+
+    List getMaclist() {
+      if (blacklist_devices == null) {
+        return devices.map((e) => {"mac": e}).toList();
+      } else {
+        return blacklist_devices.datas.maclist
+            .map((e) => {"mac": e.mac})
+            .toList();
+      }
+    }
 
     Map<String, dynamic> data = {
-      "datas": {
-        "maclist":
-            blacklist_devices.datas.maclist.map((e) => {"mac": e.mac}).toList(),
-        "macfilter": "deny"
-      },
+      "datas": {"maclist": getMaclist(), "macfilter": "deny"},
       "success": true,
       "cmd": 405,
       "method": "POST",
       "sessionId": sessionID
     };
 
-    print(data);
-
-    // ApiClient().postData(data, printLogs: true).then((value) {
-    //   // blacklistDModel = BlacklistDModel.fromMap(value.data);
-    //   // Logger().log('Fetching blacklist devices');
-    // });
+    ApiClient().postData(jsonEncode(data), printLogs: true).then((value) {
+      // blacklistDModel = BlacklistDModel.fromMap(value.data);
+      // Logger().log('Fetching blacklist devices');
+    });
   }
 
-  unblockDevices(List devices) {
+  unblockDevices(List devices, {bool reset = false}) {
     BlacklistDModel? blacklist_devices = blacklistDModel;
+
+    if (blacklist_devices == null) return;
+
     devices.forEach((e) {
-      blacklist_devices!.datas.maclist.removeWhere((element) {
+      blacklist_devices.datas.maclist.removeWhere((element) {
         return element.mac == e;
       });
     });
 
     Map<String, dynamic> data = {
       "datas": {
-        "maclist": blacklist_devices!.datas.maclist
-            .map((e) => {"mac": e.mac})
-            .toList(),
+        "maclist": reset
+            ? List.empty()
+            : blacklist_devices.datas.maclist
+                .map((e) => {"mac": e.mac})
+                .toList(),
         "macfilter": "deny"
       },
       "success": true,

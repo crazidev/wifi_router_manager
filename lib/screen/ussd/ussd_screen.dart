@@ -23,8 +23,9 @@ class UssdScreen extends StatelessWidget {
       body: Column(
         children: [
           const Spacer(),
-          Obx(
-            () => Padding(
+          Obx(() {
+            var i = code.value;
+            return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
@@ -45,8 +46,8 @@ class UssdScreen extends StatelessWidget {
                     //   ],
                     // ),
                   ],
-                )),
-          ),
+                ));
+          }),
           CustomKeyPad(
             codeLength: null,
             onChange: (value) {

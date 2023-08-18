@@ -24,6 +24,7 @@ dependencies:
   pull_to_refresh: ^2.0.0
   shared_preferences: ^2.2.0
   smartrefresh: ^0.0.2
+  awesome_notifications: any
 
 dev_dependencies:
   flutter_test:

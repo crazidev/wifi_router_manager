@@ -82,9 +82,10 @@ class Devices extends StatelessWidget {
                                             Navigator.pop(context);
                                             Helper().showPreloader(context,
                                                 title: "Restarting Router");
-                                            selectedBlackList.clear();
+
                                             homeController.unblockDevices(
                                                 selectedBlackList);
+                                            selectedBlackList.clear();
                                             Timer(const Duration(seconds: 3),
                                                 () {
                                               Navigator.pop(context);
@@ -131,9 +132,11 @@ class Devices extends StatelessWidget {
                                             Navigator.pop(context);
                                             Helper().showPreloader(context,
                                                 title: "Restarting Router");
-                                            selectedWhiteList.clear();
+
                                             homeController.blockDevices(
                                                 selectedWhiteList);
+                                            selectedWhiteList.clear();
+
                                             Timer(const Duration(seconds: 3),
                                                 () {
                                               Navigator.pop(context);
@@ -169,9 +172,10 @@ class Devices extends StatelessWidget {
                 child: Text("Clear Custom Names"),
                 value: 0,
               ),
-              // PopupMenuItem(child: Text("Clear Devices")),
+              // PopupMenuItem(child: Text("Clear Devices"), value: 1),
             ],
             onSelected: (value) {
+              // * Clear custom device names from shared preference
               if (value == 0) {
                 homeController.prefs
                     .remove(AppConstant.customDeviceName)
@@ -185,6 +189,9 @@ class Devices extends StatelessWidget {
                   ).show(context);
                 });
               }
+
+              // * Clear all blocked devices
+              // if (value == 1) {}
             },
           )
         ],
@@ -283,7 +290,7 @@ class Devices extends StatelessWidget {
                                 ),
                               ),
                               Obx(() {
-                                var i = selectedBlackList;
+                                var i = selectedBlackList.value;
                                 return homeController
                                             .blacklistDModel?.datas.maclist ==
                                         null
@@ -503,21 +510,21 @@ class DeviceList extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (!data['blocked'])
-										if(!data['selected'])
-                    IconButton(
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (_) {
-                                return Dialog(
-                                  data: data,
-                                );
-                              });
-                        },
-                        icon: const Icon(
-                          FontAwesome.edit,
-                          size: 18,
-                        )),
+                    if (!data['selected'])
+                      IconButton(
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (_) {
+                                  return Dialog(
+                                    data: data,
+                                  );
+                                });
+                          },
+                          icon: const Icon(
+                            FontAwesome.edit,
+                            size: 18,
+                          )),
                   AvatarGlow(
                     endRadius: 18,
                     animate: data['blocked'] ? false : true,
