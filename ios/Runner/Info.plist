@@ -47,5 +47,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>This is app requires notification permission to send sms alerts &amp; connected devices</string>
 </dict>
 </plist>
