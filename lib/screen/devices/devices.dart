@@ -7,17 +7,21 @@ import 'package:cherry_toast/cherry_toast.dart';
 import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
+import 'package:router_manager/controller/devices_controller.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/core/helper.dart';
+import 'package:router_manager/devices/mtn_mifi.dart';
+import 'package:router_manager/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../controller/home_controller.dart';
 import '../../core/app_constant.dart';
 
-class Devices extends StatelessWidget {
+class Devices extends ConsumerWidget {
   Devices({super.key});
 
   HomeController homeController = Get.put(HomeController());
@@ -29,20 +33,15 @@ class Devices extends StatelessWidget {
 
   var isExpanded = false.obs;
 
-  setIP() async {
-    await NetworkInterface.list(
-            type: InternetAddressType.IPv4, includeLinkLocal: true)
-        .then((value) {
-      deviceIP = value.last.addresses.first.address;
-    });
-  }
+  setIP() async {}
 
-  refreshState() {
-    homeController.update(['devices']);
-  }
+  refreshState() {}
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    var devices = ref.watch(homeProvider.select((value) => value.devices));
+    var blockedDevice = ref.watch(fetchBlockDevicesProvider);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -50,14 +49,11 @@ class Devices extends StatelessWidget {
         automaticallyImplyLeading: false,
         toolbarHeight: 70,
         centerTitle: false,
-        title: GetBuilder(
-            id: 'stats',
-            init: homeController,
-            builder: (context) {
-              return Text(
-                      "Devices (${homeController.connectedDevices?.dhcp_list_info.length ?? "0"})")
-                  .marginOnly(top: 10);
-            }),
+        title: Consumer(
+          builder: (context, ref, child) {
+            return Text("Devices (${devices.connected})");
+          },
+        ).marginOnly(top: 10),
         actions: [
           Obx(() => Row(
                 children: [
@@ -177,7 +173,8 @@ class Devices extends StatelessWidget {
             onSelected: (value) {
               // * Clear custom device names from shared preference
               if (value == 0) {
-                homeController.prefs
+                ref
+                    .read(sharedPreferencesProvider)
                     .remove(AppConstant.customDeviceName)
                     .then((value) {
                   CherryToast.success(
@@ -206,7 +203,7 @@ class Devices extends StatelessWidget {
           children: [
             Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: homeController.connectedDevices?.dhcp_list_info == null
+                child: devices.devices == null
                     ? const SizedBox()
                     : GetBuilder(
                         id: 'devices',
@@ -217,9 +214,7 @@ class Devices extends StatelessWidget {
                             children: [
                               Obx(
                                 () => Column(
-                                  children: List.from(homeController
-                                      .connectedDevices!.dhcp_list_info
-                                      .map((e) {
+                                  children: List.from(devices.devices!.map((e) {
                                     var selected = false;
 
                                     if (deviceIP == '') {
@@ -227,23 +222,24 @@ class Devices extends StatelessWidget {
                                     }
 
                                     selectedWhiteList.forEach((e2) {
-                                      if (e.mac == e2) {
+                                      if (e.mac_addr == e2) {
                                         selected = true;
                                       }
                                     });
 
                                     String? customName;
 
-                                    List<String>? list = homeController.prefs
+                                    List<String>? list = ref
+                                        .read(sharedPreferencesProvider)
                                         .getStringList(
                                             AppConstant.customDeviceName);
 
                                     if (list != null)
                                       // ignore: curly_braces_in_flow_control_structures
                                       for (var i = 0; i < list.length; i++) {
-                                        if (jsonDecode(
-                                                list.elementAt(i))['mac'] ==
-                                            e.mac) {
+                                        if (jsonDecode(list.elementAt(i))[
+                                                'mac_addr'] ==
+                                            e.mac_addr) {
                                           customName = jsonDecode(
                                               list.elementAt(i))['name'];
                                         }
@@ -256,24 +252,25 @@ class Devices extends StatelessWidget {
                                             return customName;
                                           } else {
                                             return e.hostname == "*"
-                                                ? e.ip
+                                                ? e.ip_addr
                                                 : e.hostname;
                                           }
                                         }(),
-                                        'ip': e.ip,
-                                        'mac': e.mac,
+                                        'ip_addr': e.ip_addr,
+                                        'mac_addr': e.mac_addr,
                                         'selected': selected,
                                         'blocked': false,
                                       },
-                                      lable: deviceIP == e.ip
+                                      lable: deviceIP == e.ip_addr
                                           ? "This device"
                                           : null,
                                       onclick: () {
                                         if (selectedWhiteList.isNotEmpty) {
                                           if (selected) {
-                                            selectedWhiteList.remove(e.mac);
+                                            selectedWhiteList
+                                                .remove(e.mac_addr);
                                           } else {
-                                            selectedWhiteList.add(e.mac);
+                                            selectedWhiteList.add(e.mac_addr);
                                           }
                                         }
                                       },
@@ -283,7 +280,7 @@ class Devices extends StatelessWidget {
                                           selectedBlackList.clear();
                                         }
 
-                                        selectedWhiteList.add(e.mac);
+                                        selectedWhiteList.add(e.mac_addr);
                                       },
                                     ).marginOnly(bottom: 10);
                                   })),
@@ -291,75 +288,63 @@ class Devices extends StatelessWidget {
                               ),
                               Obx(() {
                                 var i = selectedBlackList.value;
-                                return homeController
-                                            .blacklistDModel?.datas.maclist ==
-                                        null
-                                    ? const SizedBox()
-                                    : ExpansionPanelList(
-                                        expandedHeaderPadding: EdgeInsets.zero,
-                                        animationDuration:
-                                            const Duration(milliseconds: 300),
-                                        elevation: 0,
-                                        expansionCallback: (index, value) {
-                                          isExpanded.value = !isExpanded.value;
+                                return ExpansionPanelList(
+                                  expandedHeaderPadding: EdgeInsets.zero,
+                                  animationDuration:
+                                      const Duration(milliseconds: 300),
+                                  elevation: 0,
+                                  expansionCallback: (index, value) {
+                                    isExpanded.value = !isExpanded.value;
+                                  },
+                                  children: [
+                                    ExpansionPanel(
+                                        backgroundColor: Colors.transparent,
+                                        isExpanded: isExpanded.value,
+                                        headerBuilder: (BuildContext context,
+                                            bool expanded) {
+                                          return Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                "Blocked (${blockedDevice.value?.length})",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleLarge,
+                                              ).marginOnly(top: 20, bottom: 10),
+                                            ],
+                                          );
                                         },
-                                        children: [
-                                          ExpansionPanel(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              isExpanded: isExpanded.value,
-                                              headerBuilder:
-                                                  (BuildContext context,
-                                                      bool expanded) {
-                                                return Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "Blocked (${homeController.blacklistDModel!.datas.maclist.length})",
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .titleLarge,
-                                                    ).marginOnly(
-                                                        top: 20, bottom: 10),
-                                                  ],
-                                                );
-                                              },
-                                              body: Obx(() {
-                                                var i = selectedBlackList.value;
-                                                return Column(children: [
+                                        body: blockedDevice.when(
+                                            error: (error, stacks) =>
+                                                Text(error.toString()),
+                                            loading: () =>
+                                                CupertinoActivityIndicator(),
+                                            data: (value) => Column(children: [
                                                   for (var i = 0;
-                                                      i <
-                                                          homeController
-                                                              .blacklistDModel!
-                                                              .datas
-                                                              .maclist
-                                                              .length;
+                                                      i < value.length;
                                                       i++)
                                                     Builder(builder: (context) {
-                                                      var data = homeController
-                                                          .blacklistDModel!
-                                                          .datas
-                                                          .maclist
-                                                          .elementAt(i);
+                                                      var data =
+                                                          value.elementAt(i);
 
                                                       var selected = false;
 
                                                       selectedBlackList
                                                           .forEach((e) {
-                                                        if (e == data.mac) {
+                                                        if (e ==
+                                                            data.mac_addr) {
                                                           selected = true;
                                                         }
                                                       });
 
                                                       String? customName;
 
-                                                      List<String>? list =
-                                                          homeController.prefs
-                                                              .getStringList(
-                                                                  AppConstant
-                                                                      .customDeviceName);
+                                                      List<String>? list = ref
+                                                          .read(
+                                                              sharedPreferencesProvider)
+                                                          .getStringList(AppConstant
+                                                              .customDeviceName);
 
                                                       if (list != null) {
                                                         for (var i = 0;
@@ -368,8 +353,8 @@ class Devices extends StatelessWidget {
                                                           if (jsonDecode(list
                                                                       .elementAt(
                                                                           i))[
-                                                                  'mac'] ==
-                                                              data.mac) {
+                                                                  'mac_addr'] ==
+                                                              data.mac_addr) {
                                                             customName =
                                                                 jsonDecode(list
                                                                         .elementAt(
@@ -382,7 +367,9 @@ class Devices extends StatelessWidget {
                                                       return DeviceList(
                                                         data: {
                                                           'name': customName ??
-                                                              data.mac,
+                                                              data.hostname,
+                                                          'mac_addr':
+                                                              data.mac_addr,
                                                           'selected': selected,
                                                           'blocked': true,
                                                         },
@@ -391,12 +378,12 @@ class Devices extends StatelessWidget {
                                                               .isNotEmpty) {
                                                             if (selected) {
                                                               selectedBlackList
-                                                                  .remove(
-                                                                      data.mac);
+                                                                  .remove(data
+                                                                      .mac_addr);
                                                             } else {
                                                               selectedBlackList
-                                                                  .add(
-                                                                      data.mac);
+                                                                  .add(data
+                                                                      .mac_addr);
                                                             }
                                                           }
                                                         },
@@ -407,15 +394,14 @@ class Devices extends StatelessWidget {
                                                             selectedWhiteList
                                                                 .clear();
                                                           }
-                                                          selectedBlackList
-                                                              .add(data.mac);
+                                                          selectedBlackList.add(
+                                                              data.mac_addr);
                                                         },
                                                       ).marginOnly(bottom: 10);
                                                     }),
-                                                ]);
-                                              })),
-                                        ],
-                                      );
+                                                ]))),
+                                  ],
+                                );
                               }),
                             ],
                           );
@@ -538,43 +524,41 @@ class DeviceList extends StatelessWidget {
                   )
                 ],
               ),
-              subtitle: data['blocked']
-                  ? null
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "IP: ${data['ip']}",
-                          style: TextStyle(
-                            color: AppColor.dim,
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "${data['mac']}".toUpperCase(),
-                              style: TextStyle(
-                                color: AppColor.dim,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (lable != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(5),
-                                color: AppColor.primary.withOpacity(0.1)),
-                            child: Text(
-                              lable!,
-                              style: TextStyle(
-                                  fontSize: 9, color: AppColor.primary),
-                            ),
-                          )
-                      ],
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!data['blocked'])
+                    Text(
+                      "IP: ${data['ip_addr']}",
+                      style: TextStyle(
+                        color: AppColor.dim,
+                      ),
                     ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${data['mac_addr']}".toUpperCase(),
+                        style: TextStyle(
+                          color: AppColor.dim,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (lable != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: AppColor.primary.withOpacity(0.1)),
+                      child: Text(
+                        lable!,
+                        style: TextStyle(fontSize: 9, color: AppColor.primary),
+                      ),
+                    )
+                ],
+              ),
             ),
           ),
         ),
@@ -607,14 +591,14 @@ class Dialog extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text('IP Address: '),
-              Text(data['ip'], style: TextStyle(color: AppColor.dim))
+              const Text('ip_addr Address: '),
+              Text(data['ip_addr'], style: TextStyle(color: AppColor.dim))
             ],
           ),
           Row(
             children: [
-              const Text('MAC: '),
-              Text(data['mac'].toString().toUpperCase(),
+              const Text('mac_addr: '),
+              Text(data['mac_addr'].toString().toUpperCase(),
                   style: TextStyle(color: AppColor.dim))
             ],
           ),
@@ -650,8 +634,8 @@ class Dialog extends StatelessWidget {
                     if (list != null && list.isNotEmpty) {
                       /// if element already exist in the list, delete element
                       for (var i = 0; i < list.length; i++) {
-                        if (jsonDecode(list.elementAt(i))['mac'] ==
-                            data['mac']) {
+                        if (jsonDecode(list.elementAt(i))['mac_addr'] ==
+                            data['mac_addr']) {
                           list.removeAt(i);
                         }
                       }
@@ -701,8 +685,11 @@ class Dialog extends StatelessWidget {
                     value.getStringList(AppConstant.customDeviceName);
 
                 ///
-                /// create a new json mac from device data, and set name to the new data from the textform
-                var newData = {'mac': data['mac'], 'name': reply.text};
+                /// create a new json mac_addr from device data, and set name to the new data from the textform
+                var newData = {
+                  'mac_addr': data['mac_addr'],
+                  'name': reply.text
+                };
 
                 ///
                 /// if the list dosent exist on the shared prefernce, create new list and save the current data
@@ -713,7 +700,8 @@ class Dialog extends StatelessWidget {
                   ///
                   /// if element already exist in the list, delete element
                   for (var i = 0; i < list.length; i++) {
-                    if (jsonDecode(list.elementAt(i))['mac'] == data['mac']) {
+                    if (jsonDecode(list.elementAt(i))['mac_addr'] ==
+                        data['mac_addr']) {
                       list.removeAt(i);
                     }
                   }

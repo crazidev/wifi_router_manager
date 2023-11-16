@@ -1,60 +1,66 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 import 'package:router_manager/components/custom_key_pad.dart';
 import 'package:router_manager/controller/home_controller.dart';
+import 'package:router_manager/controller/ussd_controller.dart';
 import 'package:router_manager/core/helper.dart';
 
 import '../../core/app_export.dart';
 
-class UssdScreen extends StatelessWidget {
+class UssdScreen extends ConsumerWidget {
   UssdScreen({
     super.key,
   });
-  var code = [].obs;
-  TextEditingController textcontroller = TextEditingController();
-  HomeController controller = Get.find<HomeController>();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    var ctr = ref.watch(ussdProvider);
+    ref.listen(ussdProvider.select((value) => value.state), (previous, next) {
+      if (next == UssdState.completed) {
+        Navigator.pop(context);
+
+        showDialog(context: context, builder: (_) => UssdDialog());
+      }
+    });
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Column(
         children: [
           const Spacer(),
-          Obx(() {
-            var i = code.value;
-            return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: textcontroller,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.displaySmall,
-                      decoration: const InputDecoration(
-                          isDense: true, border: InputBorder.none),
-                    ),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   children: [
-                    //     Text(
-                    //       code.join(),
-                    //       style: Theme.of(context).textTheme.displaySmall,
-                    //     ),
-                    //   ],
-                    // ),
-                  ],
-                ));
-          }),
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: ctr.ussd,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.displaySmall,
+                    decoration: const InputDecoration(
+                        isDense: true, border: InputBorder.none),
+                  ),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Text(
+                  //       code.join(),
+                  //       style: Theme.of(context).textTheme.displaySmall,
+                  //     ),
+                  //   ],
+                  // ),
+                ],
+              )),
           CustomKeyPad(
             codeLength: null,
             onChange: (value) {
-              textcontroller.text = value;
+              ctr.ussd.text = value;
+              Logger().log(value);
             },
             onComplete: () {},
-            otp: code,
+            otp: ctr.ussdCode,
           ),
           Stack(
             children: [
@@ -63,14 +69,13 @@ class UssdScreen extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      if (textcontroller.text == "") return;
+                      // if (textcontroller.text == "") return;
                       Helper().showPreloader(context);
-                      await controller.sendUSSD(textcontroller.text);
-                      await controller.fetchUSSD();
-                      Navigator.pop(context);
-                      showDialog(
-                          context: context,
-                          builder: (_) => UssdDialog(controller: controller));
+                      if (!ctr.canReply) {
+                        await ctr.cancelUSSD();
+                      }
+                      await ctr.sendUSSD();
+                      await ctr.fetchUSSD();
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColor.container,
@@ -87,13 +92,6 @@ class UssdScreen extends StatelessWidget {
                           Icons.call,
                           size: 25,
                         ),
-                        // Text(
-                        //   "USSD",
-                        //   style: Theme.of(context)
-                        //       .textTheme
-                        //       .labelSmall!
-                        //       .copyWith(),
-                        // ),
                       ],
                     ),
                   ),
@@ -108,8 +106,11 @@ class UssdScreen extends StatelessWidget {
                       // if (code.isNotEmpty)
                       IconButton(
                           onPressed: () {
-                            code.removeLast();
-                            textcontroller.text = code.join();
+                            if (ctr.ussdCode.isNotEmpty) {
+                              ctr.ussdCode.removeLast();
+                              ctr.ussd.text = ctr.ussdCode.join();
+                              Logger().log(ctr.ussdCode);
+                            }
                           },
                           icon: const Icon(
                             Icons.backspace,
@@ -127,41 +128,33 @@ class UssdScreen extends StatelessWidget {
   }
 }
 
-class UssdDialog extends StatelessWidget {
+class UssdDialog extends ConsumerWidget {
   UssdDialog({
     Key? key,
-    required this.controller,
   }) : super(key: key);
 
-  final HomeController controller;
-  TextEditingController reply = TextEditingController();
   var isLoading = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    var controller = ref.read(ussdProvider);
     return AlertDialog(
       backgroundColor: AppColor.bg,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SelectableText(
-            controller.ussdRes.trim(),
-          ).marginOnly(bottom: 20),
-          if (controller.ussd_reply)
+          SelectableText(controller.ussdResponse).marginOnly(bottom: 20),
+          if (controller.canReply)
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: TextField(
                 textInputAction: TextInputAction.send,
-                controller: reply,
+                keyboardType: TextInputType.multiline,
+                controller: controller.ussdReply,
                 onSubmitted: (value) async {
-                  if (reply.text == "") return;
+                  if (controller.ussdReply.text == "") return;
                   Navigator.pop(context);
-                  controller.sendUSSD(reply.text.toString().trim());
-                  await controller.fetchUSSD();
-                  showDialog(
-                      context: controller.context,
-                      builder: (_) => UssdDialog(controller: controller));
                 },
                 decoration: InputDecoration(
                   fillColor: AppColor.bottomNavBG,
@@ -182,20 +175,19 @@ class UssdDialog extends StatelessWidget {
       actions: [
         TextButton(
             onPressed: () {
+              Navigator.pop(context);
               controller.cancelUSSD();
-              Navigator.pop(controller.context);
             },
             child: const Text('Close')),
-        if (controller.ussd_reply)
+        if (controller.canReply)
           TextButton(
               onPressed: () async {
-                if (reply.text == "") return;
+                if (controller.ussdReply.text == "") return;
                 Navigator.pop(context);
-                controller.sendUSSD(reply.text.toString().trim());
+                Helper().showPreloader(context);
+
+                await controller.sendUSSD(reply: true);
                 await controller.fetchUSSD();
-                showDialog(
-                    context: controller.context,
-                    builder: (_) => UssdDialog(controller: controller));
               },
               child: const Text('Reply'))
       ],

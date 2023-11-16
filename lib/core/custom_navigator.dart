@@ -19,8 +19,8 @@ class MyRouter {
 
   removeAll(BuildContext context, Widget widget) {
     // Get.to(() => widget);
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (context) => widget));
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => widget), (route) => false);
   }
 
   pop(BuildContext context) {

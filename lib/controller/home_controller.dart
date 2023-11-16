@@ -1,13 +1,18 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: avoid_print
 
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:dio/src/response.dart' as Dio;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:router_manager/core/app_constant.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/data/api_client.dart';
@@ -15,7 +20,9 @@ import 'package:router_manager/data/model/response/blacklist_devices.dart';
 import 'package:router_manager/data/model/response/network_details_model.dart';
 import 'package:router_manager/data/model/response/sms_model.dart';
 import 'package:router_manager/data/model/response/ussd_response_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:router_manager/devices/mtn_mifi.dart';
+import 'package:router_manager/main.dart';
+import 'package:router_manager/screen/auth/controller/auth_controller.dart';
 
 import '../data/model/response/connected_devices_model.dart';
 
@@ -23,19 +30,21 @@ import '../data/model/response/connected_devices_model.dart';
 /* cSpell:disable */
 
 class HomeController extends GetxController {
+  String endpoint = '';
+
   @override
   Future<void> onReady() async {
-    // initialize the shared preference first
-    prefs = await SharedPreferences.getInstance();
+    // // initialize the shared preference first
+    // prefs = await SharedPreferences.getInstance();
 
-    fetch();
-    getConnetedDevices();
+    // fetch();
+    // getConnetedDevices();
 
-    timer = Timer.periodic(
-        const Duration(milliseconds: kDebugMode ? 3000 : 2000), (timer) {
-      getConnetedDevices();
-      fetch();
-    });
+    // timer = Timer.periodic(
+    //     const Duration(milliseconds: kDebugMode ? 3000 : 2000), (timer) {
+    //   getConnetedDevices();
+    //   fetch();
+    // });
     super.onReady();
   }
 
@@ -78,7 +87,7 @@ class HomeController extends GetxController {
   }
 
   fetchSMS() async {
-    ApiClient().postData({
+    ApiClient(endpoint).postData({
       "page_num": 1,
       "subcmd": 0,
       "cmd": 12,
@@ -120,7 +129,8 @@ class HomeController extends GetxController {
   }
 
   fetchNetworkDetails() async {
-    ApiClient().postData({"cmd": 113, "method": "GET", "sessionId": sessionID},
+    ApiClient(endpoint).postData(
+        {"cmd": 113, "method": "GET", "sessionId": sessionID},
         printLogs: false).then((value) {
       if (networkD.toString() != NetworkDModel.fromMap(value.data).toString()) {
         networkD = NetworkDModel.fromMap(value.data);
@@ -131,7 +141,8 @@ class HomeController extends GetxController {
   }
 
   fetchDataSwitch() async {
-    ApiClient().postData({"cmd": 222, "method": "GET", "sessionId": sessionID},
+    ApiClient(endpoint).postData(
+        {"cmd": 222, "method": "GET", "sessionId": sessionID},
         printLogs: false).then((value) {
       if (data_switch.value != value.data['data_switch']) {
         data_switch.value = value.data['dialMode'] ?? '';
@@ -141,7 +152,7 @@ class HomeController extends GetxController {
   }
 
   toggleDataMode() {
-    ApiClient().postData({
+    ApiClient(endpoint).postData({
       "dialMode": data_switch.value == "0" ? "1" : "0",
       "cmd": 222,
       "method": "POST",
@@ -155,7 +166,7 @@ class HomeController extends GetxController {
   }
 
   getConnetedDevices() {
-    ApiClient().postData({
+    ApiClient(endpoint).postData({
       "cmd": 402,
       "method": "GET",
       "sessionId": sessionID,
@@ -166,7 +177,7 @@ class HomeController extends GetxController {
   }
 
   deleteSMS(id, {bool all = false}) {
-    ApiClient().postData({
+    ApiClient(endpoint).postData({
       "cmd": 14,
       "index": all ? "DELETE ALL" : id,
       "subcmd": 0,
@@ -179,7 +190,7 @@ class HomeController extends GetxController {
   }
 
   fetchBlacklist() {
-    ApiClient().postData({
+    ApiClient(endpoint).postData({
       "cmd": 405,
       "method": "GET",
       "sessionId": sessionID,
@@ -217,7 +228,9 @@ class HomeController extends GetxController {
       "sessionId": sessionID
     };
 
-    ApiClient().postData(jsonEncode(data), printLogs: true).then((value) {
+    ApiClient(endpoint)
+        .postData(jsonEncode(data), printLogs: true)
+        .then((value) {
       // blacklistDModel = BlacklistDModel.fromMap(value.data);
       // Logger().log('Fetching blacklist devices');
     });
@@ -250,14 +263,16 @@ class HomeController extends GetxController {
     };
 //
     // print(data);
-    ApiClient().postData(jsonEncode(data), printLogs: true).then((value) {
+    ApiClient(endpoint)
+        .postData(jsonEncode(data), printLogs: true)
+        .then((value) {
       // blacklistDModel = BlacklistDModel.fromMap(value.data);
       // Logger().log('Fetching blacklist devices');
     });
   }
 
   sendUSSD(value) async {
-    return await ApiClient().postData({
+    return await ApiClient(endpoint).postData({
       "cmd": 350,
       "ussd_code": value,
       "subcmd": "0",
@@ -269,7 +284,7 @@ class HomeController extends GetxController {
   }
 
   setReadSMS(value) async {
-    return await ApiClient().postData({
+    return await ApiClient(endpoint).postData({
       "cmd": 12,
       "index": value,
       "method": "POST",
@@ -280,7 +295,7 @@ class HomeController extends GetxController {
   }
 
   fetchUSSD() async {
-    return await ApiClient().postData({
+    return await ApiClient(endpoint).postData({
       "cmd": 350,
       "method": "GET",
       "sessionId": sessionID,
@@ -321,7 +336,7 @@ class HomeController extends GetxController {
   }
 
   cancelUSSD() async {
-    return await ApiClient().postData({
+    return await ApiClient(endpoint).postData({
       "cmd": 350,
       "subcmd": "1",
       "method": "POST",
@@ -334,7 +349,7 @@ class HomeController extends GetxController {
   restartDevice() async {
     Logger().log('Restarting device');
 
-    ApiClient().postData({
+    ApiClient(endpoint).postData({
       "cmd": 6,
       "rebootType": 1,
       "method": "POST",
@@ -345,7 +360,7 @@ class HomeController extends GetxController {
   resetDevice() async {
     Logger().log('Restarting device');
 
-    ApiClient().postData({
+    ApiClient(endpoint).postData({
       "cmd": 6,
       "rebootType": 4,
       "method": "POST",
@@ -354,4 +369,83 @@ class HomeController extends GetxController {
   }
 
   var navIndex = 0.obs;
+}
+
+final homeProvider = ChangeNotifierProvider.autoDispose<HomeNotifier>((ref) {
+  return HomeNotifier(ref);
+});
+
+class NetworkDevice {
+  final String mac_addr;
+  final String ip_addr;
+  String? hostname;
+  NetworkDevice({
+    required this.mac_addr,
+    required this.ip_addr,
+    this.hostname,
+  });
+}
+
+class ConnectedDevices {
+  int connected;
+  int max;
+  List<NetworkDevice>? devices;
+  ConnectedDevices({
+    this.connected = 0,
+    required this.max,
+    this.devices,
+  });
+}
+
+class NNetworkBar {
+  final int? bar_length;
+  final String? name;
+
+  NNetworkBar({this.bar_length, this.name});
+}
+
+class HomeNotifier extends ChangeNotifier {
+  final Ref ref;
+  HomeNotifier(this.ref);
+
+  String? network_provider;
+  String? router;
+  String? imei;
+  NNetworkBar networkBar = NNetworkBar(bar_length: 0, name: '2G');
+  String? ipAddress = "";
+  String? imel;
+  int sms_unread = 0;
+  int battery_level = 0;
+  bool isCharging = false;
+  bool circularDataActive = true;
+
+  ConnectedDevices devices = ConnectedDevices(max: 0, connected: 0);
+  List<NetworkDevice> blockedDevices = [];
+
+  (String, String) downloadSpeed = ("0", "kb/s");
+  (String, String) uploadSpeed = ("0", "kb/s");
+
+  startStream() async {
+    var device = ref.read(authProvider).device;
+    // if (device == Device.MTN_MIFI_4G) {
+    ref.read(MifiCtrProvider).fetchData();
+    // } else {}
+  }
+
+  statusStream() async {
+    var device = ref.read(authProvider).device;
+    if (device == Device.MTN_MIFI_4G) {
+      ref.read(MifiCtrProvider).getStatus();
+    } else {}
+  }
+
+  toggleCircularNetwork() {
+    var device = ref.read(authProvider).device;
+    if (device == Device.MTN_MIFI_4G) {
+      ref.read(MifiCtrProvider).toggleData();
+    } else {}
+  }
+
+  reboot() {}
+  logout() {}
 }

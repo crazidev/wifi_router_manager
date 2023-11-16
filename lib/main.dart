@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:router_manager/controller/notification_controller.dart';
 import 'package:router_manager/screen/auth/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/app_export.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+final sharedPreferencesProvider = Provider<SharedPreferences>((_) {
+  return throw UnimplementedError();
+});
 
-void main() {
+Future<void> main() async {
   AwesomeNotifications().initialize(
       // set the icon to null if you want to use the default app icon
       null,
@@ -29,7 +33,14 @@ void main() {
       ],
       debug: true);
 
-  runApp(const MainApp());
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  runApp(ProviderScope(
+    child: const MainApp(),
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(prefs),
+    ],
+  ));
 }
 
 class MainApp extends StatefulWidget {
@@ -102,3 +113,5 @@ class _MainAppState extends State<MainApp> {
     );
   }
 }
+
+enum Device { MTN_MIFI_4G, MTN_BOARDBAND_4G }

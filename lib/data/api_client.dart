@@ -1,45 +1,71 @@
+// ignore_for_file: unnecessary_brace_in_string_interps, prefer_const_declarations
+
 import 'dart:async';
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:get/instance_manager.dart';
-import 'package:native_dio_adapter/native_dio_adapter.dart';
-import 'package:router_manager/controller/home_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:router_manager/core/app_constant.dart';
 import 'package:router_manager/core/app_export.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   static final String noInternetMessage = 'NoInternetConnection';
-  final int timeoutInSeconds = 60;
-  final appBaseUrl = AppConstant.baseUrl;
+  final int timeoutInSeconds = 2;
+  final String appBaseUrl;
   String? token = "";
-  final dio = Dio();
-  Future<SharedPreferences> prefs = SharedPreferences.getInstance();
+  Map<String, String>? _mainHeaders;
 
-  Future<Response> getData({
-    String? uri,
+  ApiClient(this.appBaseUrl);
+
+  updateHeader() async {
+    token = "";
+    if (token == null) return;
+    _mainHeaders = {
+      "Authorization": "Bearer ${token}",
+    };
+  }
+
+  Future<Response> getData(
+    String uri, {
     Map<String, String>? headers,
     bool? includeToken,
     bool? printLogs = false,
   }) async {
     try {
-      dio.httpClientAdapter = NativeAdapter();
-      Response res = await dio
-          .get(appBaseUrl)
-          .timeout(Duration(seconds: timeoutInSeconds));
-      if (printLogs!) Logger().log(res.data);
-      if (res.data['success'] == false && res.data['message'] == "NO_AUTH") {
-        await logout();
+      if (includeToken == true) {
+        await updateHeader();
+      } else {
+        _mainHeaders = headers;
+      }
+      if (kDebugMode && printLogs!) {
+        Logger().log('==> $uri', name: "API ENDPOINT");
+      }
+
+      Response res = await Dio().get(
+        appBaseUrl + uri,
+        options: Options(
+          headers: _mainHeaders,
+          receiveTimeout: Duration(seconds: 2),
+          sendTimeout: Duration(seconds: timeoutInSeconds),
+        ),
+      );
+
+      if (printLogs!) {
+        Logger().log("==> ${res.data}", name: '${res.statusCode}:$uri');
       }
       return res;
-    } catch (e) {
-      Logger().log(e.toString(), name: "API_CLIENT_ERROR", isError: true);
-      return Response(
-          statusCode: 1,
-          statusMessage: noInternetMessage,
-          requestOptions: RequestOptions());
+    } on DioException catch (e) {
+      Logger().log(e.response?.data ?? noInternetMessage,
+          name: "API_CLIENT_ERROR:${appBaseUrl}${uri}", isError: true);
+      if (e.response == null) {
+        return Response(
+            data: noInternetMessage, requestOptions: e.requestOptions);
+      } else {
+        return Response(
+            data: e.response?.data,
+            statusCode: e.response?.statusCode,
+            requestOptions: e.requestOptions);
+      }
     }
   }
 
@@ -51,27 +77,55 @@ class ApiClient {
     bool? printLogs = false,
   }) async {
     try {
-      dio.httpClientAdapter = NativeAdapter();
-      Response res = await dio
-          .post(appBaseUrl, data: body)
-          .timeout(Duration(seconds: timeoutInSeconds));
-      if (printLogs!) Logger().log(jsonEncode(res.data));
-      if (res.data['success'] == false && res.data['message'] == "NO_AUTH") {
-        await logout();
+      if (includeToken == true) {
+        await updateHeader();
+      } else {
+        _mainHeaders = headers;
       }
+      if (kDebugMode && printLogs!) {
+        Logger().log('==> $uri', name: "API ENDPOINT");
+      }
+
+      Response res = await Dio()
+          .post(
+            "$appBaseUrl${uri ?? ''}",
+            options: Options(
+              headers: _mainHeaders,
+              receiveTimeout: Duration(seconds: timeoutInSeconds),
+              sendTimeout: Duration(seconds: timeoutInSeconds),
+            ),
+            data: body,
+          )
+          .timeout(Duration(seconds: timeoutInSeconds),
+              onTimeout: () => Response(
+                  requestOptions: RequestOptions(),
+                  statusCode: 404,
+                  data: {'message': 'Could not reach the server'}));
+
+      if (printLogs!) {
+        Logger().log("==> ${res.data}", name: '${res.statusCode}:$uri');
+      }
+
       return res;
-    } catch (e) {
-      Logger().log(e.toString(), name: "API_CLIENT_ERROR", isError: true);
-      return Response(
-          statusCode: 1,
-          statusMessage: noInternetMessage,
-          requestOptions: RequestOptions());
+    } on DioException catch (e) {
+      Logger().log(e.response?.data ?? noInternetMessage,
+          name: "API_CLIENT_ERROR:${appBaseUrl}${uri}", isError: true);
+      if (e.response == null) {
+        return Response(
+            data: noInternetMessage, requestOptions: e.requestOptions);
+      } else {
+        return Response(
+            data: e.response?.data,
+            statusCode: e.response?.statusCode,
+            requestOptions: e.requestOptions);
+      }
     }
   }
+}
 
-  logout() {
-    var context = Get.find<HomeController>().context;
-    Get.deleteAll();
-    Navigator.of(context).pop();
-  }
+class MultipartBody {
+  String key;
+  File? file;
+  Uint8List? bytes;
+  MultipartBody(this.key, this.file, {this.bytes});
 }

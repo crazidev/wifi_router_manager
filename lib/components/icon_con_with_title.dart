@@ -9,10 +9,12 @@ class IconContainerWithTitle extends StatelessWidget {
     this.title,
     this.iconColor,
     this.onTap,
+    this.titleInside,
   });
 
   final IconData icon;
   final String? title;
+  final String? titleInside;
   final Color? iconColor;
   final Function()? onTap;
 
@@ -24,7 +26,7 @@ class IconContainerWithTitle extends StatelessWidget {
           onPressed: onTap,
           style: ElevatedButton.styleFrom(
               backgroundColor: AppColor.container,
-              fixedSize: const Size(40, 50),
+              // fixedSize: const Size(40, 50),
               minimumSize: const Size(50, 50),
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               shape: RoundedRectangleBorder(
@@ -36,16 +38,26 @@ class IconContainerWithTitle extends StatelessWidget {
                 icon,
                 color: iconColor,
               ),
+              SizedBox(height: 2),
+              if (titleInside != null)
+                Text(
+                  titleInside ?? '',
+                  style: TextStyle(
+                      color: AppColor.primary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
+                )
             ],
           ).paddingOnly(bottom: 2),
         ),
-        Text(
-          title ?? '',
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall!
-              .copyWith(color: AppColor.dim),
-        )
+        if (title != null)
+          Text(
+            title ?? '',
+            style: Theme.of(context)
+                .textTheme
+                .labelSmall!
+                .copyWith(color: AppColor.dim),
+          )
       ],
     ).paddingOnly(bottom: 10);
   }

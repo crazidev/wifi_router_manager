@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 class CustomKeyPad extends StatelessWidget {
   CustomKeyPad({
     Key? key,
-    required RxList otp,
+    required List otp,
     required this.codeLength,
     this.emptypad,
     required this.onComplete,
@@ -28,7 +28,7 @@ class CustomKeyPad extends StatelessWidget {
     "0",
     "#"
   ];
-  final RxList _otp;
+  final List _otp;
   final int? codeLength;
   final Widget? emptypad;
   final VoidCallback onComplete;
