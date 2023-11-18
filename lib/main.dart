@@ -6,32 +6,32 @@ import 'package:router_manager/screen/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/app_export.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
+// import 'package:awesome_notifications/awesome_notifications.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((_) {
   return throw UnimplementedError();
 });
 
 Future<void> main() async {
-  AwesomeNotifications().initialize(
-      // set the icon to null if you want to use the default app icon
-      null,
-      [
-        NotificationChannel(
-            channelGroupKey: 'MyWifi_Router',
-            channelKey: 'MyWifi_Router',
-            channelName: 'Basic notifications',
-            channelDescription:
-                'Notification channel for connected devices, sms alerts etc.',
-            defaultColor: Color(0xFF9D50DD),
-            ledColor: Colors.white)
-      ],
-      // Channel groups are only visual and are not required
-      channelGroups: [
-        NotificationChannelGroup(
-            channelGroupKey: 'MyWifi_Router', channelGroupName: 'MyWifi_Router')
-      ],
-      debug: true);
+  // AwesomeNotifications().initialize(
+  //     // set the icon to null if you want to use the default app icon
+  //     null,
+  //     [
+  //       NotificationChannel(
+  //           channelGroupKey: 'MyWifi_Router',
+  //           channelKey: 'MyWifi_Router',
+  //           channelName: 'Basic notifications',
+  //           channelDescription:
+  //               'Notification channel for connected devices, sms alerts etc.',
+  //           defaultColor: Color(0xFF9D50DD),
+  //           ledColor: Colors.white)
+  //     ],
+  //     // Channel groups are only visual and are not required
+  //     channelGroups: [
+  //       NotificationChannelGroup(
+  //           channelGroupKey: 'MyWifi_Router', channelGroupName: 'MyWifi_Router')
+  //     ],
+  //     debug: true);
 
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -55,28 +55,28 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   @override
   void initState() {
-    // Only after at least the action method is set, the notification events are delivered
-    AwesomeNotifications().setListeners(
-        onActionReceivedMethod: NotificationController.onActionReceivedMethod,
-        onNotificationCreatedMethod:
-            NotificationController.onNotificationCreatedMethod,
-        onNotificationDisplayedMethod:
-            NotificationController.onNotificationDisplayedMethod,
-        onDismissActionReceivedMethod:
-            NotificationController.onDismissActionReceivedMethod);
+    // // Only after at least the action method is set, the notification events are delivered
+    // AwesomeNotifications().setListeners(
+    //     onActionReceivedMethod: NotificationController.onActionReceivedMethod,
+    //     onNotificationCreatedMethod:
+    //         NotificationController.onNotificationCreatedMethod,
+    //     onNotificationDisplayedMethod:
+    //         NotificationController.onNotificationDisplayedMethod,
+    //     onDismissActionReceivedMethod:
+    //         NotificationController.onDismissActionReceivedMethod);
 
-    // Request the permission through native resources. Only one page redirection is done at this point.
-    AwesomeNotifications()
-        .checkPermissionList(
-      channelKey: 'MyWifi_Router',
-    )
-        .then((value) {
-      if (value.isEmpty) {
-        AwesomeNotifications().requestPermissionToSendNotifications(
-          channelKey: 'MyWifi_Router',
-        );
-      }
-    });
+    // // Request the permission through native resources. Only one page redirection is done at this point.
+    // AwesomeNotifications()
+    //     .checkPermissionList(
+    //   channelKey: 'MyWifi_Router',
+    // )
+    //     .then((value) {
+    //   if (value.isEmpty) {
+    //     AwesomeNotifications().requestPermissionToSendNotifications(
+    //       channelKey: 'MyWifi_Router',
+    //     );
+    //   }
+    // });
 
     super.initState();
   }

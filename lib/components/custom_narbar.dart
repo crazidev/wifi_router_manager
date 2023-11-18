@@ -22,6 +22,7 @@ class CustomBottomNavBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var ctr = ref.watch(homeProvider);
+    var dctr = ref.watch(deviceProvider);
 
     return BottomNavigationBar(
       elevation: 0,
@@ -37,7 +38,7 @@ class CustomBottomNavBar extends ConsumerWidget {
             label: ''),
         BottomNavigationBarItem(
             icon: Badge(
-                label: Text('${ctr.devices.connected}'),
+                label: Text('${dctr.connected}'),
                 isLabelVisible: true,
                 child: const Icon(Ionicons.link)),
             label: ''),

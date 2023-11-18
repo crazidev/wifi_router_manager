@@ -12,6 +12,7 @@ import 'package:router_manager/components/network-status-swither.dart';
 import 'package:router_manager/components/network_bar.dart';
 import 'package:router_manager/components/stats_container.dart';
 import 'package:router_manager/components/title_text_and_value.dart';
+import 'package:router_manager/controller/devices_controller.dart';
 import 'package:router_manager/controller/home_controller.dart';
 import 'package:router_manager/core/color_constant.dart';
 import 'package:router_manager/core/custom_navigator.dart';
@@ -45,6 +46,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(homeStreamProvider);
     homeScreenContext = context;
     var ctr = ref.watch(homeProvider);
+    var dctr = ref.watch(deviceProvider);
 
     return Scaffold(
       body: Stack(
@@ -196,8 +198,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       StatsContainer(
                         icon: SimpleLineIcons.screen_desktop,
                         title: 'Connected Devices',
-                        value: '${ctr.devices.connected}',
-                        subtitle: 'Max: ${ctr.devices.max}',
+                        value: '${dctr.connected}',
+                        subtitle: 'Max: ${dctr.max}',
                       ),
                       StatsContainer(
                         icon: SimpleLineIcons.cloud_upload,

@@ -10,7 +10,7 @@ final authProvider = ChangeNotifierProvider<AuthController>((ref) {
 class AuthController extends ChangeNotifier {
   bool isLoggedIn = false;
   bool isloading = false;
-  TextEditingController passwordCtr = TextEditingController();
+  TextEditingController passwordCtr = TextEditingController(text: 'admin');
 
   String? _errorMsg;
   String? get errorMsg => _errorMsg;

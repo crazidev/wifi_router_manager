@@ -17,14 +17,14 @@ dependencies:
   flutter_slidable: ^3.0.0
   flutter_vector_icons: ^2.0.0
   get: ^5.0.0-release-candidate-3
-  google_fonts: ^5.1.0
+  google_fonts: ^6.1.0
   hex: ^0.2.0
   modal_bottom_sheet: ^3.0.0-pre
   native_dio_adapter: ^1.0.0+1
   pull_to_refresh: ^2.0.0
   shared_preferences: ^2.2.0
   smartrefresh: ^0.0.2
-  awesome_notifications: any
+  # awesome_notifications: any
   flutter_riverpod: ^2.4.5
   gap: ^3.0.1
   riverpod_mutations_annotation: ^1.0.3
@@ -34,7 +34,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.1
   custom_lint: ^0.5.3
   riverpod_lint: ^2.0.4
 

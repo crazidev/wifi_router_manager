@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -11,21 +12,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:router_manager/controller/devices_controller.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/core/helper.dart';
 import 'package:router_manager/devices/mtn_mifi.dart';
 import 'package:router_manager/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../controller/home_controller.dart';
 import '../../core/app_constant.dart';
 
-class Devices extends ConsumerWidget {
+class DeviceData {
+  final String name;
+  final String mac_addr;
+  final String ip_addr;
+  final bool selected;
+  final bool blocked;
+  DeviceData({
+    required this.name,
+    required this.mac_addr,
+    required this.ip_addr,
+    required this.selected,
+    required this.blocked,
+  });
+}
+
+class Devices extends ConsumerStatefulWidget {
   Devices({super.key});
 
-  HomeController homeController = Get.put(HomeController());
+  @override
+  ConsumerState<Devices> createState() => _DevicesState();
+}
 
+class _DevicesState extends ConsumerState<Devices> {
   var selectedBlackList = [].obs;
   var selectedWhiteList = [].obs;
   var deviceIP = '';
@@ -38,8 +58,8 @@ class Devices extends ConsumerWidget {
   refreshState() {}
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    var devices = ref.watch(homeProvider.select((value) => value.devices));
+  Widget build(BuildContext context) {
+    var devices = ref.watch(deviceProvider.select((value) => value.devices));
     var blockedDevice = ref.watch(fetchBlockDevicesProvider);
 
     return Scaffold(
@@ -51,7 +71,7 @@ class Devices extends ConsumerWidget {
         centerTitle: false,
         title: Consumer(
           builder: (context, ref, child) {
-            return Text("Devices (${devices.connected})");
+            return Text("Devices (${devices?.length})");
           },
         ).marginOnly(top: 10),
         actions: [
@@ -76,11 +96,12 @@ class Devices extends ConsumerWidget {
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
-                                            Helper().showPreloader(context,
-                                                title: "Restarting Router");
-
-                                            homeController.unblockDevices(
-                                                selectedBlackList);
+                                            // Helper().showPreloader(context,
+                                            //     title: "Restarting Router");
+                                            ref
+                                                .read(deviceProvider.notifier)
+                                                .unblockDevices(
+                                                    selectedBlackList.value);
                                             selectedBlackList.clear();
                                             Timer(const Duration(seconds: 3),
                                                 () {
@@ -126,29 +147,24 @@ class Devices extends ConsumerWidget {
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
-                                            Helper().showPreloader(context,
-                                                title: "Restarting Router");
 
-                                            homeController.blockDevices(
-                                                selectedWhiteList);
+                                            ref
+                                                .read(deviceProvider.notifier)
+                                                .blockDevices(
+                                                    selectedWhiteList.value);
                                             selectedWhiteList.clear();
 
-                                            Timer(const Duration(seconds: 3),
-                                                () {
-                                              Navigator.pop(context);
-                                              CherryToast.success(
-                                                title: const Text(
-                                                    'This devices have been blocked from using the router'),
-                                                shadowColor: AppColor.bg,
-                                                animationType:
-                                                    AnimationType.fromTop,
-                                                animationDuration:
-                                                    const Duration(
-                                                        milliseconds: 700),
-                                                backgroundColor:
-                                                    AppColor.container,
-                                              ).show(context);
-                                            });
+                                            CherryToast.success(
+                                              title: const Text(
+                                                  'This devices have been blocked from using the router'),
+                                              shadowColor: AppColor.bg,
+                                              animationType:
+                                                  AnimationType.fromTop,
+                                              animationDuration: const Duration(
+                                                  milliseconds: 700),
+                                              backgroundColor:
+                                                  AppColor.container,
+                                            ).show(context);
                                           },
                                           child: const Text('Block'),
                                         ),
@@ -203,209 +219,198 @@ class Devices extends ConsumerWidget {
           children: [
             Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: devices.devices == null
+                child: devices == null
                     ? const SizedBox()
-                    : GetBuilder(
-                        id: 'devices',
-                        init: homeController,
-                        builder: (_) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Obx(
-                                () => Column(
-                                  children: List.from(devices.devices!.map((e) {
-                                    var selected = false;
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Obx(
+                            () => Column(
+                              children: List.from(devices.map((e) {
+                                var selected = false;
 
-                                    if (deviceIP == '') {
-                                      setIP();
+                                if (deviceIP == '') {
+                                  setIP();
+                                }
+
+                                selectedWhiteList.forEach((e2) {
+                                  if (e.mac_addr == e2) {
+                                    selected = true;
+                                  }
+                                });
+
+                                String? customName;
+
+                                List<String>? list = ref
+                                    .read(sharedPreferencesProvider)
+                                    .getStringList(
+                                        AppConstant.customDeviceName);
+
+                                if (list != null)
+                                  // ignore: curly_braces_in_flow_control_structures
+                                  for (var i = 0; i < list.length; i++) {
+                                    if (jsonDecode(
+                                            list.elementAt(i))['mac_addr'] ==
+                                        e.mac_addr) {
+                                      customName =
+                                          jsonDecode(list.elementAt(i))['name'];
+                                    }
+                                  }
+
+                                return DeviceList(
+                                  data: DeviceData(
+                                    name: () {
+                                      if (customName != null) {
+                                        return customName;
+                                      } else {
+                                        return e.hostname == "*"
+                                            ? e.ip_addr
+                                            : e.hostname;
+                                      }
+                                    }()!,
+                                    mac_addr: e.mac_addr,
+                                    ip_addr: e.ip_addr,
+                                    selected: selected,
+                                    blocked: false,
+                                  ),
+                                  lable: deviceIP == e.ip_addr
+                                      ? "This device"
+                                      : null,
+                                  onclick: () {
+                                    if (selectedWhiteList.isNotEmpty) {
+                                      if (selected) {
+                                        selectedWhiteList.remove(e.mac_addr);
+                                      } else {
+                                        selectedWhiteList.add(e.mac_addr);
+                                      }
+                                    }
+                                  },
+                                  onSwitch: (value) {},
+                                  onLongPress: () {
+                                    if (selectedBlackList.isNotEmpty) {
+                                      selectedBlackList.clear();
                                     }
 
-                                    selectedWhiteList.forEach((e2) {
-                                      if (e.mac_addr == e2) {
-                                        selected = true;
-                                      }
-                                    });
-
-                                    String? customName;
-
-                                    List<String>? list = ref
-                                        .read(sharedPreferencesProvider)
-                                        .getStringList(
-                                            AppConstant.customDeviceName);
-
-                                    if (list != null)
-                                      // ignore: curly_braces_in_flow_control_structures
-                                      for (var i = 0; i < list.length; i++) {
-                                        if (jsonDecode(list.elementAt(i))[
-                                                'mac_addr'] ==
-                                            e.mac_addr) {
-                                          customName = jsonDecode(
-                                              list.elementAt(i))['name'];
-                                        }
-                                      }
-
-                                    return DeviceList(
-                                      data: {
-                                        'name': () {
-                                          if (customName != null) {
-                                            return customName;
-                                          } else {
-                                            return e.hostname == "*"
-                                                ? e.ip_addr
-                                                : e.hostname;
-                                          }
-                                        }(),
-                                        'ip_addr': e.ip_addr,
-                                        'mac_addr': e.mac_addr,
-                                        'selected': selected,
-                                        'blocked': false,
-                                      },
-                                      lable: deviceIP == e.ip_addr
-                                          ? "This device"
-                                          : null,
-                                      onclick: () {
-                                        if (selectedWhiteList.isNotEmpty) {
-                                          if (selected) {
-                                            selectedWhiteList
-                                                .remove(e.mac_addr);
-                                          } else {
-                                            selectedWhiteList.add(e.mac_addr);
-                                          }
-                                        }
-                                      },
-                                      onSwitch: (value) {},
-                                      onLongPress: () {
-                                        if (selectedBlackList.isNotEmpty) {
-                                          selectedBlackList.clear();
-                                        }
-
-                                        selectedWhiteList.add(e.mac_addr);
-                                      },
-                                    ).marginOnly(bottom: 10);
-                                  })),
-                                ),
-                              ),
-                              Obx(() {
-                                var i = selectedBlackList.value;
-                                return ExpansionPanelList(
-                                  expandedHeaderPadding: EdgeInsets.zero,
-                                  animationDuration:
-                                      const Duration(milliseconds: 300),
-                                  elevation: 0,
-                                  expansionCallback: (index, value) {
-                                    isExpanded.value = !isExpanded.value;
+                                    selectedWhiteList.add(e.mac_addr);
                                   },
-                                  children: [
-                                    ExpansionPanel(
-                                        backgroundColor: Colors.transparent,
-                                        isExpanded: isExpanded.value,
-                                        headerBuilder: (BuildContext context,
-                                            bool expanded) {
-                                          return Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                "Blocked (${blockedDevice.value?.length})",
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleLarge,
-                                              ).marginOnly(top: 20, bottom: 10),
-                                            ],
-                                          );
-                                        },
-                                        body: blockedDevice.when(
-                                            error: (error, stacks) =>
-                                                Text(error.toString()),
-                                            loading: () =>
-                                                CupertinoActivityIndicator(),
-                                            data: (value) => Column(children: [
-                                                  for (var i = 0;
-                                                      i < value.length;
-                                                      i++)
-                                                    Builder(builder: (context) {
-                                                      var data =
-                                                          value.elementAt(i);
+                                ).marginOnly(bottom: 10);
+                              })),
+                            ),
+                          ),
+                          Obx(() {
+                            var i = selectedBlackList.value;
+                            return ExpansionPanelList(
+                              expandedHeaderPadding: EdgeInsets.zero,
+                              animationDuration:
+                                  const Duration(milliseconds: 300),
+                              elevation: 0,
+                              expansionCallback: (index, value) {
+                                isExpanded.value = !isExpanded.value;
+                              },
+                              children: [
+                                ExpansionPanel(
+                                    backgroundColor: Colors.transparent,
+                                    isExpanded: !isExpanded.value,
+                                    headerBuilder:
+                                        (BuildContext context, bool expanded) {
+                                      return Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "Blocked (${blockedDevice.value?.length})",
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleLarge,
+                                          ).marginOnly(top: 20, bottom: 10),
+                                        ],
+                                      );
+                                    },
+                                    body: blockedDevice.when(
+                                        error: (error, stacks) =>
+                                            Text(error.toString()),
+                                        loading: () =>
+                                            CupertinoActivityIndicator(),
+                                        data: (value) => Column(children: [
+                                              for (var i = 0;
+                                                  i < value.length;
+                                                  i++)
+                                                Builder(builder: (context) {
+                                                  var data = value.elementAt(i);
 
-                                                      var selected = false;
+                                                  var selected = false;
 
-                                                      selectedBlackList
-                                                          .forEach((e) {
-                                                        if (e ==
-                                                            data.mac_addr) {
-                                                          selected = true;
-                                                        }
-                                                      });
+                                                  selectedBlackList
+                                                      .forEach((e) {
+                                                    if (e == data.mac_addr) {
+                                                      selected = true;
+                                                    }
+                                                  });
 
-                                                      String? customName;
+                                                  String? customName;
 
-                                                      List<String>? list = ref
-                                                          .read(
-                                                              sharedPreferencesProvider)
-                                                          .getStringList(AppConstant
-                                                              .customDeviceName);
+                                                  List<String>? list = ref
+                                                      .read(
+                                                          sharedPreferencesProvider)
+                                                      .getStringList(AppConstant
+                                                          .customDeviceName);
 
-                                                      if (list != null) {
-                                                        for (var i = 0;
-                                                            i < list.length;
-                                                            i++) {
-                                                          if (jsonDecode(list
-                                                                      .elementAt(
-                                                                          i))[
-                                                                  'mac_addr'] ==
-                                                              data.mac_addr) {
-                                                            customName =
-                                                                jsonDecode(list
-                                                                        .elementAt(
-                                                                            i))[
-                                                                    'name'];
-                                                          }
-                                                        }
+                                                  if (list != null) {
+                                                    for (var i = 0;
+                                                        i < list.length;
+                                                        i++) {
+                                                      if (jsonDecode(list
+                                                                  .elementAt(
+                                                                      i))[
+                                                              'mac_addr'] ==
+                                                          data.mac_addr) {
+                                                        customName = jsonDecode(
+                                                            list.elementAt(
+                                                                i))['name'];
                                                       }
+                                                    }
+                                                  }
 
-                                                      return DeviceList(
-                                                        data: {
-                                                          'name': customName ??
-                                                              data.hostname,
-                                                          'mac_addr':
-                                                              data.mac_addr,
-                                                          'selected': selected,
-                                                          'blocked': true,
-                                                        },
-                                                        onclick: () {
-                                                          if (selectedBlackList
-                                                              .isNotEmpty) {
-                                                            if (selected) {
-                                                              selectedBlackList
-                                                                  .remove(data
-                                                                      .mac_addr);
-                                                            } else {
-                                                              selectedBlackList
-                                                                  .add(data
-                                                                      .mac_addr);
-                                                            }
-                                                          }
-                                                        },
-                                                        onSwitch: (value) {},
-                                                        onLongPress: () {
-                                                          if (selectedWhiteList
-                                                              .isNotEmpty) {
-                                                            selectedWhiteList
-                                                                .clear();
-                                                          }
+                                                  return DeviceList(
+                                                    data: DeviceData(
+                                                      name: customName ??
+                                                          data.hostname!,
+                                                      mac_addr: data.mac_addr,
+                                                      ip_addr: '',
+                                                      selected: selected,
+                                                      blocked: true,
+                                                    ),
+                                                    onclick: () {
+                                                      if (selectedBlackList
+                                                          .isNotEmpty) {
+                                                        if (selected) {
+                                                          selectedBlackList
+                                                              .remove(data
+                                                                  .mac_addr);
+                                                        } else {
                                                           selectedBlackList.add(
                                                               data.mac_addr);
-                                                        },
-                                                      ).marginOnly(bottom: 10);
-                                                    }),
-                                                ]))),
-                                  ],
-                                );
-                              }),
-                            ],
-                          );
-                        })),
+                                                        }
+                                                      }
+                                                    },
+                                                    onSwitch: (value) {},
+                                                    onLongPress: () {
+                                                      if (selectedWhiteList
+                                                          .isNotEmpty) {
+                                                        selectedWhiteList
+                                                            .clear();
+                                                      }
+                                                      selectedBlackList
+                                                          .add(data.mac_addr);
+                                                    },
+                                                  ).marginOnly(bottom: 10);
+                                                }),
+                                            ]))),
+                              ],
+                            );
+                          }),
+                        ],
+                      )),
           ],
         ),
       ),
@@ -416,14 +421,14 @@ class Devices extends ConsumerWidget {
 class DeviceList extends StatelessWidget {
   const DeviceList({
     super.key,
-    this.data,
+    required this.data,
     required this.onclick,
     required this.onSwitch,
     required this.onLongPress,
     this.lable,
   });
 
-  final dynamic data;
+  final DeviceData data;
   final Function() onclick;
   final ValueChanged onSwitch;
   final Function() onLongPress;
@@ -435,15 +440,14 @@ class DeviceList extends StatelessWidget {
       children: [
         AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            width: data['selected'] ? 30 : 0,
-            margin: EdgeInsets.only(right: data['selected'] ? 10 : 0),
-            child: data['selected']
-                ? const Icon(Ionicons.checkmark_circle)
-                : null),
+            width: data.selected ? 30 : 0,
+            margin: EdgeInsets.only(right: data.selected ? 10 : 0),
+            child:
+                data.selected ? const Icon(Ionicons.checkmark_circle) : null),
         Expanded(
           child: Slidable(
             enabled: () {
-              if (data['blocked'] || data['selected']) {
+              if (data.blocked || data.selected) {
                 return false;
               }
               return true;
@@ -470,7 +474,7 @@ class DeviceList extends StatelessWidget {
             child: ListTile(
               onTap: onclick,
               onLongPress: onLongPress,
-              selected: data['selected'],
+              selected: data.selected,
               contentPadding:
                   const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
               shape: RoundedRectangleBorder(
@@ -484,7 +488,7 @@ class DeviceList extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      data['name'],
+                      data.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -495,8 +499,8 @@ class DeviceList extends StatelessWidget {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!data['blocked'])
-                    if (!data['selected'])
+                  if (!data.blocked)
+                    if (!data.selected)
                       IconButton(
                           onPressed: () {
                             showDialog(
@@ -513,12 +517,12 @@ class DeviceList extends StatelessWidget {
                           )),
                   AvatarGlow(
                     endRadius: 18,
-                    animate: data['blocked'] ? false : true,
+                    animate: data.blocked ? false : true,
                     glowColor: Colors.green,
                     showTwoGlows: false,
                     child: Icon(
                       Icons.circle_sharp,
-                      color: data['blocked'] ? AppColor.dim : Colors.green,
+                      color: data.blocked ? AppColor.dim : Colors.green,
                       size: 10,
                     ),
                   )
@@ -527,9 +531,9 @@ class DeviceList extends StatelessWidget {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!data['blocked'])
+                  if (!data.blocked)
                     Text(
-                      "IP: ${data['ip_addr']}",
+                      "IP: ${data.ip_addr}",
                       style: TextStyle(
                         color: AppColor.dim,
                       ),
@@ -538,7 +542,7 @@ class DeviceList extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "${data['mac_addr']}".toUpperCase(),
+                        "${data.mac_addr}".toUpperCase(),
                         style: TextStyle(
                           color: AppColor.dim,
                         ),
@@ -592,13 +596,13 @@ class Dialog extends StatelessWidget {
           Row(
             children: [
               const Text('ip_addr Address: '),
-              Text(data['ip_addr'], style: TextStyle(color: AppColor.dim))
+              Text(data.ip_addr, style: TextStyle(color: AppColor.dim))
             ],
           ),
           Row(
             children: [
               const Text('mac_addr: '),
-              Text(data['mac_addr'].toString().toUpperCase(),
+              Text(data.mac_addr.toString().toUpperCase(),
                   style: TextStyle(color: AppColor.dim))
             ],
           ),
@@ -635,7 +639,7 @@ class Dialog extends StatelessWidget {
                       /// if element already exist in the list, delete element
                       for (var i = 0; i < list.length; i++) {
                         if (jsonDecode(list.elementAt(i))['mac_addr'] ==
-                            data['mac_addr']) {
+                            data.mac_addr) {
                           list.removeAt(i);
                         }
                       }
@@ -686,10 +690,7 @@ class Dialog extends StatelessWidget {
 
                 ///
                 /// create a new json mac_addr from device data, and set name to the new data from the textform
-                var newData = {
-                  'mac_addr': data['mac_addr'],
-                  'name': reply.text
-                };
+                var newData = {'mac_addr': data.mac_addr, 'name': reply.text};
 
                 ///
                 /// if the list dosent exist on the shared prefernce, create new list and save the current data
@@ -701,7 +702,7 @@ class Dialog extends StatelessWidget {
                   /// if element already exist in the list, delete element
                   for (var i = 0; i < list.length; i++) {
                     if (jsonDecode(list.elementAt(i))['mac_addr'] ==
-                        data['mac_addr']) {
+                        data.mac_addr) {
                       list.removeAt(i);
                     }
                   }

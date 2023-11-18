@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:router_manager/controller/devices_controller.dart';
 import 'package:router_manager/controller/home_controller.dart';
 import 'package:router_manager/controller/sms_controller.dart';
 import 'package:router_manager/controller/ussd_controller.dart';
@@ -24,6 +25,8 @@ final MifiCtrProvider = ChangeNotifierProvider<MIFICONTROLLER>((ref) {
 class MIFICONTROLLER extends ChangeNotifier {
   final Ref ref;
   int get token => getRandomInt(120) + 50;
+  MIFICONTROLLER(this.ref);
+
   String get_endpoint = 'http://192.168.0.1/goform/goform_get_cmd_process';
   String set_endpoint = 'http://192.168.0.1/goform/goform_set_cmd_process';
   var headers = {
@@ -31,8 +34,6 @@ class MIFICONTROLLER extends ChangeNotifier {
     "Host": "192.168.0.1",
     "Accept": "application/json, text/javascript, */*; q=0.01"
   };
-
-  MIFICONTROLLER(this.ref);
 
   // ======================= AUTH ================================
 
@@ -303,14 +304,15 @@ class MIFICONTROLLER extends ChangeNotifier {
         return false;
       }
       if (data['station_list'] != "") {
-        ref.read(homeProvider).devices.connected =
+        ref.read(deviceProvider).connected =
             (data['station_list'] as List).length;
-        ref.read(homeProvider).devices.devices = (data['station_list'] as List)
-            .map((e) => NetworkDevice(
-                mac_addr: e['mac_addr'],
-                ip_addr: e['ip_addr'],
-                hostname: e['hostname']))
-            .toList();
+        ref.read(deviceProvider.notifier).update =
+            (data['station_list'] as List)
+                .map((e) => NetworkDevice(
+                    mac_addr: e['mac_addr'],
+                    ip_addr: e['ip_addr'],
+                    hostname: e['hostname']))
+                .toList();
       }
     });
 
@@ -351,7 +353,7 @@ class MIFICONTROLLER extends ChangeNotifier {
       }
 
       if (data["loginfo"] != 'ok') {
-        login(password: ref.read(authProvider).passwordCtr.text);
+        // login(password: ref.read(authProvider).passwordCtr.text);
       }
 
       ref.read(homeProvider).isCharging =
@@ -404,7 +406,6 @@ class MIFICONTROLLER extends ChangeNotifier {
   // ======================= HOME END ================================
 
   // ======================= DEVICES END ================================
-  // http://192.168.0.1/goform/goform_get_cmd_process?isTest=false&multi_data=1&cmd=ACL_mode%2Cwifi_mac_black_list%2Cwifi_hostname_black_list%2CRadioOff%2Cuser_ip_addr&_=170010229
   Future<List<NetworkDevice>> fetchBlockedDevices() async {
     var res = await ApiClient(get_endpoint).getData(
       '?isTest=false&multi_data=1&cmd=ACL_mode,wifi_mac_black_list,wifi_hostname_black_list&_=${token}',
@@ -425,5 +426,60 @@ class MIFICONTROLLER extends ChangeNotifier {
             ip_addr: '',
             hostname: blackListHostname[index])).toList();
     return list;
+  }
+
+  blockDevices(List value) {
+    var devices = ref.read(fetchBlockDevicesProvider).value ?? [];
+
+    for (var i = 0; i < value.length; i++) {
+      var newDevice = ref
+          .read(deviceProvider)
+          .devices!
+          .where((e) => e.mac_addr == value[i])
+          .first;
+      ref
+          .read(deviceProvider)
+          .devices!
+          .removeWhere((e) => e.mac_addr == value[i]);
+      devices.add(newDevice);
+    }
+
+    var macAddreses = devices.map((e) => e.mac_addr).toList().join(";");
+    var names = devices.map((e) => e.hostname).toList().join(";");
+
+    ApiClient(set_endpoint)
+        .postData(
+      "goformId=WIFI_MAC_FILTER&isTest=false&ACL_mode=2&macFilteringMode=2&wifi_hostname_black_list=${names}&wifi_mac_black_list=${macAddreses}",
+      printLogs: true,
+      headers: headers,
+    )
+        .then((value) {
+      ref.invalidate(fetchBlockDevicesProvider);
+    });
+  }
+
+  unblockDevices(List value) {
+    var devices = ref.read(fetchBlockDevicesProvider).value ?? [];
+
+    for (var i = 0; i < value.length; i++) {
+      devices.removeWhere((e) => e.mac_addr == value[i]);
+      ref
+          .read(deviceProvider)
+          .devices!
+          .add(devices.where((e) => e.mac_addr == value[i]).first);
+    }
+
+    var macAddreses = devices.map((e) => e.mac_addr).toList().join(";");
+    var names = devices.map((e) => e.hostname).toList().join(";");
+
+    ApiClient(set_endpoint)
+        .postData(
+      "goformId=WIFI_MAC_FILTER&isTest=false&ACL_mode=2&macFilteringMode=2&wifi_hostname_black_list=${names}&wifi_mac_black_list=${macAddreses}",
+      printLogs: true,
+      headers: headers,
+    )
+        .then((value) {
+      ref.invalidate(fetchBlockDevicesProvider);
+    });
   }
 }

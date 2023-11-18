@@ -25,7 +25,7 @@ class LoginScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: Padding(
         padding: const EdgeInsets.all(30),
         child: Column(
