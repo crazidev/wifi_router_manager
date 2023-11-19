@@ -45,15 +45,15 @@ class LoginScreen extends ConsumerWidget {
                 ),
               ],
             ).marginOnly(bottom: 10),
-            Text(
-              "Login to MTN Boardband Device Interface",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.lato(
-                color: AppColor.dim,
-                fontSize: 18,
-                // color: AppColor.primary,
-              ),
-            ).marginOnly(bottom: 20),
+            // Text(
+            //   "Login to MTN Boardband Device Interface",
+            //   textAlign: TextAlign.center,
+            //   style: GoogleFonts.lato(
+            //     color: AppColor.dim,
+            //     fontSize: 18,
+            //     // color: AppColor.primary,
+            //   ),
+            // ).marginOnly(bottom: 20),
             Text(
               authController.lockdown_msg ?? '',
               style: TextStyle(fontSize: 16, color: Colors.red),

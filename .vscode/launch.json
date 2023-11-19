@@ -25,6 +25,19 @@
       ]
     },
     {
+      "name": "Run Android --no-build",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": [
+        // "--device-timeout",
+        // "10",
+        "-v",
+        "--no-pub",
+        "--use-application-binary=build/app-debug.apk"
+      ]
+    },
+    {
       "name": "Flutter: Attach to Device",
       "type": "dart",
       "request": "attach"

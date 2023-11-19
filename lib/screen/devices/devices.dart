@@ -39,7 +39,7 @@ class DeviceData {
 }
 
 class Devices extends ConsumerStatefulWidget {
-  Devices({super.key});
+  const Devices({super.key});
 
   @override
   ConsumerState<Devices> createState() => _DevicesState();
@@ -103,22 +103,20 @@ class _DevicesState extends ConsumerState<Devices> {
                                                 .unblockDevices(
                                                     selectedBlackList.value);
                                             selectedBlackList.clear();
-                                            Timer(const Duration(seconds: 3),
-                                                () {
-                                              Navigator.pop(context);
-                                              CherryToast.success(
-                                                title: const Text(
-                                                    'This devices have been unblocked'),
-                                                shadowColor: AppColor.bg,
-                                                animationType:
-                                                    AnimationType.fromTop,
-                                                animationDuration:
-                                                    const Duration(
-                                                        milliseconds: 700),
-                                                backgroundColor:
-                                                    AppColor.container,
-                                              ).show(context);
-                                            });
+
+                                            CherryToast.success(
+                                              title: const Text(
+                                                  'This devices have been unblocked'),
+                                              shadowColor: AppColor.bg,
+                                              animationType:
+                                                  AnimationType.fromTop,
+                                              toastDuration: const Duration(
+                                                  milliseconds: 1700),
+                                              animationDuration: const Duration(
+                                                  milliseconds: 300),
+                                              backgroundColor:
+                                                  AppColor.container,
+                                            ).show(context);
                                           },
                                           child: const Text('Unblock'),
                                         ),
@@ -147,7 +145,6 @@ class _DevicesState extends ConsumerState<Devices> {
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
-
                                             ref
                                                 .read(deviceProvider.notifier)
                                                 .blockDevices(
@@ -160,8 +157,10 @@ class _DevicesState extends ConsumerState<Devices> {
                                               shadowColor: AppColor.bg,
                                               animationType:
                                                   AnimationType.fromTop,
+                                              toastDuration: const Duration(
+                                                  milliseconds: 1700),
                                               animationDuration: const Duration(
-                                                  milliseconds: 700),
+                                                  milliseconds: 300),
                                               backgroundColor:
                                                   AppColor.container,
                                             ).show(context);
@@ -197,7 +196,8 @@ class _DevicesState extends ConsumerState<Devices> {
                     title: const Text('Cleared succesfully'),
                     shadowColor: AppColor.bg,
                     animationType: AnimationType.fromTop,
-                    animationDuration: const Duration(milliseconds: 700),
+                    toastDuration: const Duration(milliseconds: 1700),
+                    animationDuration: const Duration(milliseconds: 300),
                     backgroundColor: AppColor.container,
                   ).show(context);
                 });
@@ -656,7 +656,8 @@ class Dialog extends StatelessWidget {
                           'This device has been reset to its default name'),
                       shadowColor: AppColor.bg,
                       animationType: AnimationType.fromTop,
-                      animationDuration: const Duration(milliseconds: 700),
+                      toastDuration: const Duration(milliseconds: 1700),
+                      animationDuration: const Duration(milliseconds: 300),
                       backgroundColor: AppColor.container,
                     ).show(context);
                   });
@@ -722,7 +723,8 @@ class Dialog extends StatelessWidget {
                 title: Text('This device has been renamed to (${reply.text})'),
                 shadowColor: AppColor.bg,
                 animationType: AnimationType.fromTop,
-                animationDuration: const Duration(milliseconds: 700),
+                toastDuration: const Duration(milliseconds: 1700),
+                animationDuration: const Duration(milliseconds: 300),
                 backgroundColor: AppColor.container,
               ).show(context);
             },

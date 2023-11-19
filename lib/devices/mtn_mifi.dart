@@ -12,6 +12,7 @@ import 'package:router_manager/controller/ussd_controller.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/core/custom_navigator.dart';
 import 'package:router_manager/data/api_client.dart';
+import 'package:router_manager/data/model/response/sms_model.dart';
 import 'package:router_manager/screen/auth/controller/auth_controller.dart';
 import 'package:router_manager/screen/auth/login.dart';
 import 'package:router_manager/screen/devices/devices.dart';
@@ -160,14 +161,41 @@ class MIFICONTROLLER extends ChangeNotifier {
     return String.fromCharCodes(bytes);
   }
 
+  String formatToUnicode(String rawString) {
+    Iterable<int> codePoints = rawString.runes;
+    String unicodeString = codePoints.map((int codePoint) {
+      return '${codePoint.toRadixString(16).toUpperCase().padLeft(4, '0')}';
+    }).join('');
+    return unicodeString;
+  }
+
   // ======================= OTHERS END ================================
 
   // ======================= SMS ================================
 
+  Map<String, List<SMSModel>> groupSMSByNumber(List<SMSModel> smsList) {
+    Map<String, List<SMSModel>> groupedSMS = {};
+
+    for (SMSModel sms in smsList) {
+      if (!groupedSMS.containsKey(sms.number)) {
+        groupedSMS[sms.number] = [];
+      }
+      groupedSMS[sms.number]?.add(sms);
+    }
+
+    return groupedSMS;
+  }
+
+  // Function to find the newest SMS in a list
+  SMSModel findNewestSMS(List<SMSModel> messages) {
+    messages.sort((a, b) => b.date.compareTo(a.date));
+    return messages.first;
+  }
+
   fetchSMS() {
     ApiClient(get_endpoint)
         .getData(
-      '?isTest=false&cmd=sms_data_total&page=0&data_per_page=5&mem_store=1&tags=10&order_by=order+by+id+desc&_=${token}',
+      '?isTest=false&cmd=sms_data_total&page=0&data_per_page=500&mem_store=1&tags=10&order_by=order+by+id+desc&_=${token}',
       printLogs: false,
       headers: headers,
     )
@@ -175,6 +203,7 @@ class MIFICONTROLLER extends ChangeNotifier {
       var data = jsonDecode(value.data);
       if (data['messages'] != "") {
         var messages = (data['messages'] as List);
+
         ref.read(smsProvider).sms_list = messages.map((e) {
           var date = e['date'].toString().split(',');
 
@@ -182,19 +211,31 @@ class MIFICONTROLLER extends ChangeNotifier {
               id: int.parse(e['id']),
               content: decodeString(e['content']),
               number: decodeString(e['number']),
-              groupTag: e['tag'],
+              isSent: e['tag'] == "2" || e['tag'] == "3" ? true : false,
+              sentFailed: e['tag'] == "3" ? true : false,
+              unread: e['sms_class'] == "1" ? true : false,
               date:
                   "20${date[0]}-${date[1]}-${date[2]} ${date[3]}:${date[4]}:${date[5]}");
         }).toList();
-        ref.read(smsProvider).notifyListeners();
+
+        var groupedSMS = groupSMSByNumber(ref.read(smsProvider).sms_list!);
+
+        // Group SMS by number
+        ref.read(smsProvider).sms_grouped_list = List.from(groupedSMS.entries
+            .map((e) => SMSGroupedModel(
+                number: e.key,
+                smsList: e.value,
+                newestSMS: findNewestSMS(e.value))));
       }
+      ref.read(smsProvider).notifyListeners();
     });
   }
 
-  Future<bool> deleteSMS(id, {bool? all = false}) async {
+  Future<bool> deleteSMS(List<SMSModel> sms_list) async {
+    var ids = sms_list.map((e) => e.id).join(';');
     await ApiClient(set_endpoint)
         .postData(
-      "isTest=false&goformId=DELETE_SMS&msg_id=$id&notCallback=true&_=${token}",
+      "isTest=false&goformId=DELETE_SMS&msg_id=$ids&notCallback=true&_=${token}",
       printLogs: true,
       headers: headers,
     )
@@ -207,6 +248,69 @@ class MIFICONTROLLER extends ChangeNotifier {
     });
 
     return false;
+  }
+
+  sendSMS() {
+//     fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "isTest=false&goformId=SEND_SMS&notCallback=true&Number=OPayInfo&sms_time=23%3B11%3B19%3B03%3B51%3B45%3B%2B1&MessageBody=00480045006C006C006F&ID=-1&encode_type=GSM7_default",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "omit"
+// });
+
+    ApiClient(set_endpoint)
+        .postData(
+      "isTest=false&goformId=SEND_SMS&notCallback=true&Number=OPayInfo&sms_time=&MessageBody=&ID=-1&encode_type=GSM7_default",
+      printLogs: true,
+      headers: headers,
+    )
+        .then((value) {
+      var data = jsonDecode(value.data);
+      if (data['result'] == "success") {
+        fetchSMS();
+        return true;
+      }
+    });
+  }
+
+  updateReadStatus(List<SMSModel> sms_list) {
+//     fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "isTest=false&goformId=SET_MSG_READ&msg_id=1710%3B&tag=0",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "omit"
+// });
+    Logger().log('Updating read status');
+    var ids = sms_list.map((e) => e.id).join(';');
+    ApiClient(set_endpoint)
+        .postData(
+      "isTest=false&goformId=SET_MSG_READ&msg_id=${ids}&tag=0",
+      printLogs: true,
+      headers: headers,
+    )
+        .then((value) {
+      var data = jsonDecode(value.data);
+      if (data['result'] == "success") {
+        fetchSMS();
+        return true;
+      }
+    });
   }
 
   // ======================= SMS END ================================
@@ -306,13 +410,13 @@ class MIFICONTROLLER extends ChangeNotifier {
       if (data['station_list'] != "") {
         ref.read(deviceProvider).connected =
             (data['station_list'] as List).length;
-        ref.read(deviceProvider.notifier).update =
-            (data['station_list'] as List)
-                .map((e) => NetworkDevice(
-                    mac_addr: e['mac_addr'],
-                    ip_addr: e['ip_addr'],
-                    hostname: e['hostname']))
-                .toList();
+
+        ref.read(deviceProvider).devices = (data['station_list'] as List)
+            .map((e) => NetworkDevice(
+                mac_addr: e['mac_addr'],
+                ip_addr: e['ip_addr'],
+                hostname: e['hostname']))
+            .toList();
       }
     });
 
@@ -391,6 +495,8 @@ class MIFICONTROLLER extends ChangeNotifier {
         );
       }
 
+      ref.read(deviceProvider).max = int.tryParse(data["MAX_Access_num"]) ?? 0;
+
       ref.read(homeProvider).sms_unread =
           int.tryParse(data["sms_unread_num"]) ?? 0;
 
@@ -462,11 +568,11 @@ class MIFICONTROLLER extends ChangeNotifier {
     var devices = ref.read(fetchBlockDevicesProvider).value ?? [];
 
     for (var i = 0; i < value.length; i++) {
-      devices.removeWhere((e) => e.mac_addr == value[i]);
       ref
           .read(deviceProvider)
           .devices!
           .add(devices.where((e) => e.mac_addr == value[i]).first);
+      devices.removeWhere((e) => e.mac_addr == value[i]);
     }
 
     var macAddreses = devices.map((e) => e.mac_addr).toList().join(";");
@@ -481,5 +587,22 @@ class MIFICONTROLLER extends ChangeNotifier {
         .then((value) {
       ref.invalidate(fetchBlockDevicesProvider);
     });
+  }
+
+  renameDevice() {
+//   fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "isTest=false&goformId=EDIT_HOSTNAME&mac=d6%3A07%3A5c%3A11%3A76%3A13&hostname=Unknown",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "omit"
+// });
   }
 }

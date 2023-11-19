@@ -1,5 +1,7 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:router_manager/main.dart';
 import 'package:router_manager/screen/auth/controller/auth_controller.dart';
 
@@ -14,23 +16,43 @@ class SMSModel {
   final String number;
   final String date;
   final int id;
-  final String? groupTag;
+  final bool unread;
+
+  final bool? sentFailed;
+  final bool? isSent;
   SMSModel({
-    required this.id,
     required this.content,
     required this.number,
     required this.date,
-    this.groupTag,
+    required this.id,
+    this.unread = false,
+    this.sentFailed = false,
+    this.isSent = false,
+  });
+}
+
+enum SMSDeleteType { all, single, group }
+
+class SMSGroupedModel {
+  final String number;
+  final SMSModel newestSMS;
+  final List<SMSModel> smsList;
+  SMSGroupedModel({
+    required this.number,
+    required this.newestSMS,
+    required this.smsList,
   });
 }
 
 class SMSNotifier extends ChangeNotifier {
   final Ref ref;
+
   SMSNotifier(this.ref);
 
   int sms_unread = 0;
 
   List<SMSModel>? sms_list;
+  List<SMSGroupedModel>? sms_grouped_list;
 
   fetchSMS() {
     var device = ref.read(authProvider).device;
@@ -39,10 +61,17 @@ class SMSNotifier extends ChangeNotifier {
     } else {}
   }
 
-  deleteSMS({required int id, bool? all = false}) {
+  deleteSMS(List<SMSModel> sms_list) {
     var device = ref.read(authProvider).device;
     if (device == Device.MTN_MIFI_4G) {
-      ref.read(MifiCtrProvider).deleteSMS(id, all: all);
+      ref.read(MifiCtrProvider).deleteSMS(sms_list);
+    } else {}
+  }
+
+  updateReadStatus(List<SMSModel> sms_list) {
+    var device = ref.read(authProvider).device;
+    if (device == Device.MTN_MIFI_4G) {
+      ref.read(MifiCtrProvider).updateReadStatus(sms_list);
     } else {}
   }
 }

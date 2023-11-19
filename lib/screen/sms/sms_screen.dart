@@ -9,6 +9,8 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
 import 'package:router_manager/controller/sms_controller.dart';
 import 'package:router_manager/core/app_export.dart';
+import 'package:router_manager/core/custom_navigator.dart';
+import 'package:router_manager/screen/sms/sms_conversation.dart';
 
 import '../../controller/home_controller.dart';
 
@@ -21,7 +23,8 @@ class SMSscreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var smsList = ref.watch(smsProvider.select((value) => value.sms_list));
+    var smsList =
+        ref.watch(smsProvider.select((value) => value.sms_grouped_list));
 
     return Scaffold(
       appBar: AppBar(
@@ -70,9 +73,9 @@ class SMSscreen extends ConsumerWidget {
                                     ),
                                     TextButton(
                                       onPressed: () {
-                                        ref
-                                            .read(smsProvider)
-                                            .deleteSMS(id: 0, all: true);
+                                        ref.read(smsProvider).deleteSMS(
+                                            ref.read(smsProvider).sms_list ??
+                                                []);
                                         Navigator.pop(context);
                                         CherryToast.success(
                                           title: const Text(
@@ -124,22 +127,26 @@ class SMSscreen extends ConsumerWidget {
                           children: List.from(smsList.map((e) {
                             var selected = false;
 
-                            // selectedList.forEach((e) {
-                            //   if (e == data.split(' ').elementAt(0)) {
-                            //     selected = true;
-                            //   }
-                            // });
+                            var unread = 0;
+                            for (var i = 0; i < e.smsList.length; i++) {
+                              if (e.smsList[i].unread) {
+                                unread++;
+                              }
+                            }
 
                             return DeviceList(
                               selectedList: selectedList,
                               data: {
-                                'id': e.id,
-                                'message': e.content,
+                                'id': e.newestSMS.id,
+                                'message': e.newestSMS.content,
                                 'number': e.number,
-                                'date': e.date,
+                                'date': e.newestSMS.date,
                                 'selected': selected,
                                 'read': false,
+                                'unread_count': unread,
+                                'group_count': e.smsList.length
                               },
+                              groupData: e,
                               onDelete: (id) {
                                 showDialog(
                                     context: context,
@@ -158,7 +165,7 @@ class SMSscreen extends ConsumerWidget {
                                               onPressed: () {
                                                 ref
                                                     .read(smsProvider)
-                                                    .deleteSMS(id: id);
+                                                    .deleteSMS(e.smsList);
                                                 Navigator.pop(context);
 
                                                 CherryToast.success(
@@ -180,40 +187,13 @@ class SMSscreen extends ConsumerWidget {
                                         ));
                               },
                               onclick: () {
+                                MyRouter().to(
+                                    context, SMSConversationScreen(data: e));
+                                ref
+                                    .read(smsProvider)
+                                    .updateReadStatus(e.smsList);
                                 if (selectedList.isNotEmpty) {
-                                  // if (selected) {
-                                  //   selectedList.remove(
-                                  //       data.split(' ').elementAt(0));
-                                  // } else {
-                                  //   selectedList.add(
-                                  //       data.split(' ').elementAt(0));
-                                  // }
-                                } else {
-                                  //   showDialog(
-                                  //       context: context,
-                                  //       builder: (_) => AlertDialog(
-                                  //             title: Text(data
-                                  //                 .split(' ')
-                                  //                 .elementAt(2)),
-                                  //             content: Text(data.substring(
-                                  //                 others.length)),
-                                  //             actions: [
-                                  //               TextButton(
-                                  //                 onPressed: () {
-                                  //                   Navigator.pop(context);
-                                  //                 },
-                                  //                 child:
-                                  //                     const Text('Close'),
-                                  //               ),
-                                  //               // TextButton(
-                                  //               //   onPressed: () {},
-                                  //               //   child: Text('Reply'),
-                                  //               // ),
-                                  //             ],
-                                  //           ));
-                                  //   // homeController.setReadSMS(
-                                  //   //     data.split(' ').elementAt(0));
-                                }
+                                } else {}
                               },
                             ).marginOnly(bottom: 10);
                           })),
@@ -233,11 +213,13 @@ class DeviceList extends StatelessWidget {
     required this.onclick,
     required this.selectedList,
     required this.onDelete,
+    this.groupData,
   });
 
   final dynamic data;
   final Function() onclick;
   final ValueChanged onDelete;
+  final SMSGroupedModel? groupData;
 
   final RxList selectedList;
 
@@ -265,19 +247,46 @@ class DeviceList extends StatelessWidget {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             tileColor: AppColor.container,
             iconColor: AppColor.dim,
-            leading: data['read']
+            leading: data['unread_count'] == 0
                 ? const Icon(
                     SimpleLineIcons.bubble,
                   )
-                : const Badge(
+                : Badge.count(
+                    count: data['unread_count'],
                     child: Icon(
                       SimpleLineIcons.bubble,
                     ),
                   ),
-            title: Text(
-              data['message'],
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      "${data['number']}",
+                      style: TextStyle(
+                          // color: AppColor.dim,
+                          color: AppColor.primary,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    if (data['group_count'] > 1)
+                      Text(
+                        " (${data['group_count']})",
+                        style: TextStyle(
+                            // color: AppColor.dim,
+                            color: AppColor.primary,
+                            fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+                SizedBox(height: 3),
+                Text(
+                  data['message'],
+                  maxLines: 3,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
             minLeadingWidth: 40,
             // trailing:
@@ -287,12 +296,6 @@ class DeviceList extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "${data['number']}",
-                      style: TextStyle(
-                        color: AppColor.dim,
-                      ),
-                    ),
                     Text(
                       "${data['date']}",
                       style: TextStyle(
