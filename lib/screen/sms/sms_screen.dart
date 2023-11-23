@@ -10,6 +10,8 @@ import 'package:get/get.dart';
 import 'package:router_manager/controller/sms_controller.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/core/custom_navigator.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+
 import 'package:router_manager/screen/sms/sms_conversation.dart';
 
 import '../../controller/home_controller.dart';
@@ -25,6 +27,13 @@ class SMSscreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var smsList =
         ref.watch(smsProvider.select((value) => value.sms_grouped_list));
+    ref.listen(smsProvider.select((value) => value.sms_total_count),
+        (previous, next) {
+      if (previous != next) {
+        Logger().log('SMS UNREAD CHANGED');
+        ref.read(smsProvider).refreshController.requestRefresh();
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -123,80 +132,90 @@ class SMSscreen extends ConsumerWidget {
                   var i = selectedList.value;
                   return smsList == null
                       ? const SizedBox()
-                      : ListView(
-                          children: List.from(smsList.map((e) {
-                            var selected = false;
+                      : SmartRefresher(
+                          controller: ref.read(smsProvider).refreshController,
+                          onRefresh: () {
+                            ref.read(smsProvider).fetchSMS();
+                          },
+                          child: ListView(
+                            children: List.from(smsList.map((e) {
+                              var selected = false;
 
-                            var unread = 0;
-                            for (var i = 0; i < e.smsList.length; i++) {
-                              if (e.smsList[i].unread) {
-                                unread++;
+                              var unread = 0;
+                              for (var i = 0; i < e.smsList.length; i++) {
+                                if (e.smsList[i].unread) {
+                                  unread++;
+                                }
                               }
-                            }
 
-                            return DeviceList(
-                              selectedList: selectedList,
-                              data: {
-                                'id': e.newestSMS.id,
-                                'message': e.newestSMS.content,
-                                'number': e.number,
-                                'date': e.newestSMS.date,
-                                'selected': selected,
-                                'read': false,
-                                'unread_count': unread,
-                                'group_count': e.smsList.length
-                              },
-                              groupData: e,
-                              onDelete: (id) {
-                                showDialog(
-                                    context: context,
-                                    builder: (_) => CupertinoAlertDialog(
-                                          title: const Text('Confirm'),
-                                          content: const Text(
-                                              'Do you want to delete this sms?'),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: const Text('Cancel'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                ref
-                                                    .read(smsProvider)
-                                                    .deleteSMS(e.smsList);
-                                                Navigator.pop(context);
+                              return DeviceList(
+                                selectedList: selectedList,
+                                data: {
+                                  'id': e.newestSMS.id,
+                                  'message': e.newestSMS.content,
+                                  'number': e.number,
+                                  'date': e.newestSMS.date,
+                                  'selected': selected,
+                                  'read': false,
+                                  'unread_count': unread,
+                                  'group_count': e.smsList.length
+                                },
+                                groupData: e,
+                                onDelete: (id) {
+                                  showDialog(
+                                      context: context,
+                                      builder: (_) => CupertinoAlertDialog(
+                                            title: const Text('Confirm'),
+                                            content: const Text(
+                                                'Do you want to delete this sms?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  ref
+                                                      .read(smsProvider)
+                                                      .deleteSMS(e.smsList);
+                                                  Navigator.pop(context);
 
-                                                CherryToast.success(
-                                                  title: const Text(
-                                                      'Deleted succesfully'),
-                                                  shadowColor: AppColor.bg,
-                                                  animationType:
-                                                      AnimationType.fromTop,
-                                                  animationDuration:
-                                                      const Duration(
-                                                          milliseconds: 700),
-                                                  backgroundColor:
-                                                      AppColor.container,
-                                                ).show(context);
-                                              },
-                                              child: const Text('Delete'),
-                                            ),
-                                          ],
-                                        ));
-                              },
-                              onclick: () {
-                                MyRouter().to(
-                                    context, SMSConversationScreen(data: e));
-                                ref
-                                    .read(smsProvider)
-                                    .updateReadStatus(e.smsList);
-                                if (selectedList.isNotEmpty) {
-                                } else {}
-                              },
-                            ).marginOnly(bottom: 10);
-                          })),
+                                                  CherryToast.success(
+                                                    title: const Text(
+                                                        'Deleted succesfully'),
+                                                    shadowColor: AppColor.bg,
+                                                    animationType:
+                                                        AnimationType.fromTop,
+                                                    animationDuration:
+                                                        const Duration(
+                                                            milliseconds: 700),
+                                                    backgroundColor:
+                                                        AppColor.container,
+                                                  ).show(context);
+                                                },
+                                                child: const Text('Delete'),
+                                              ),
+                                            ],
+                                          ));
+                                },
+                                onclick: () {
+                                  MyRouter().to(
+                                      context, SMSConversationScreen(data: e));
+                                  if (e.smsList.any(
+                                      (element) => element.unread == true)) {
+                                    ref
+                                        .read(smsProvider)
+                                        .updateReadStatus(e.smsList);
+                                  }
+
+                                  if (selectedList.isNotEmpty) {
+                                  } else {}
+                                },
+                              ).marginOnly(bottom: 10);
+                            })),
+                          ),
                         );
                 },
               )),

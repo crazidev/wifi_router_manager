@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:router_manager/controller/devices_controller.dart';
 import 'package:router_manager/controller/home_controller.dart';
 import 'package:router_manager/controller/sms_controller.dart';
@@ -18,6 +19,7 @@ import 'package:router_manager/screen/auth/login.dart';
 import 'package:router_manager/screen/devices/devices.dart';
 import 'package:router_manager/screen/home/home_screen.dart';
 import 'package:router_manager/screen/home/stream/home_stream.dart';
+import 'package:router_manager/screen/sms/sms_conversation.dart';
 
 final MifiCtrProvider = ChangeNotifierProvider<MIFICONTROLLER>((ref) {
   return MIFICONTROLLER(ref);
@@ -169,6 +171,20 @@ class MIFICONTROLLER extends ChangeNotifier {
     return unicodeString;
   }
 
+  String convertDateTimeToCustomFormat(DateTime dateTime) {
+    Duration timeZoneOffset = dateTime.timeZoneOffset;
+    String offsetSign = timeZoneOffset.isNegative ? '-' : '+';
+    String offsetHours = timeZoneOffset.inHours.abs().toString().padLeft(2, '');
+    String offsetMinutes =
+        (timeZoneOffset.inMinutes % 60).abs().toString().padLeft(2, '0');
+
+    // Format: yy;MM;dd;HH;mm;ss;+HH;mm
+    return "${dateTime.year % 100};${dateTime.month.toString().padLeft(2, '0')};"
+        "${dateTime.day.toString().padLeft(2, '0')};${dateTime.hour.toString().padLeft(2, '0')};"
+        "${dateTime.minute.toString().padLeft(2, '0')};${dateTime.second.toString().padLeft(2, '0')};"
+        "$offsetSign$offsetHours";
+  }
+
   // ======================= OTHERS END ================================
 
   // ======================= SMS ================================
@@ -207,13 +223,17 @@ class MIFICONTROLLER extends ChangeNotifier {
         ref.read(smsProvider).sms_list = messages.map((e) {
           var date = e['date'].toString().split(',');
 
+          /// Tag = 0: read
+          /// Tag = 2: sent sms
+          /// Tag = 1: unread
+
           return SMSModel(
               id: int.parse(e['id']),
               content: decodeString(e['content']),
               number: decodeString(e['number']),
               isSent: e['tag'] == "2" || e['tag'] == "3" ? true : false,
               sentFailed: e['tag'] == "3" ? true : false,
-              unread: e['sms_class'] == "1" ? true : false,
+              unread: e['tag'] == "1" ? true : false,
               date:
                   "20${date[0]}-${date[1]}-${date[2]} ${date[3]}:${date[4]}:${date[5]}");
         }).toList();
@@ -227,6 +247,9 @@ class MIFICONTROLLER extends ChangeNotifier {
                 smsList: e.value,
                 newestSMS: findNewestSMS(e.value))));
       }
+
+      ref.read(smsProvider).refreshController.refreshCompleted();
+      ref.read(smsConversationProvider).notifyListeners();
       ref.read(smsProvider).notifyListeners();
     });
   }
@@ -250,32 +273,39 @@ class MIFICONTROLLER extends ChangeNotifier {
     return false;
   }
 
-  sendSMS() {
-//     fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
-//   "headers": {
-//     "accept": "application/json, text/javascript, */*; q=0.01",
-//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-//     "x-requested-with": "XMLHttpRequest"
-//   },
-//   "referrer": "http://192.168.0.1/index.html",
-//   "referrerPolicy": "strict-origin-when-cross-origin",
-//   "body": "isTest=false&goformId=SEND_SMS&notCallback=true&Number=OPayInfo&sms_time=23%3B11%3B19%3B03%3B51%3B45%3B%2B1&MessageBody=00480045006C006C006F&ID=-1&encode_type=GSM7_default",
-//   "method": "POST",
-//   "mode": "cors",
-//   "credentials": "omit"
-// });
+  sendSMS(SendSMSModel data) {
+    var messageDecode = formatToUnicode(data.message);
+    var number = data.number;
+    String formattedDateTime = convertDateTimeToCustomFormat(DateTime.now());
 
     ApiClient(set_endpoint)
         .postData(
-      "isTest=false&goformId=SEND_SMS&notCallback=true&Number=OPayInfo&sms_time=&MessageBody=&ID=-1&encode_type=GSM7_default",
+      "isTest=false&goformId=SEND_SMS&notCallback=true&Number=$number&sms_time=$formattedDateTime&MessageBody=$messageDecode&ID=-1&encode_type=GSM7_default",
       printLogs: true,
       headers: headers,
     )
         .then((value) {
       var data = jsonDecode(value.data);
       if (data['result'] == "success") {
-        fetchSMS();
+        Timer timer = Timer.periodic(Duration(seconds: 1), (timer) async {
+          await ApiClient(get_endpoint)
+              .getData(
+            '?cmd=sms_cmd_status_info&sms_cmd=4&isTest=false&_=${token}',
+            printLogs: true,
+            headers: headers,
+          )
+              .then((value) {
+            var data = jsonDecode(value.data);
+            if (data['sms_cmd_status_result'] == "1") {
+              // TODO: Still waiting for status
+            }
+
+            if (data['sms_cmd_status_result'] == "3") {
+              timer.cancel();
+              ref.read(smsProvider).refreshController.requestRefresh();
+            }
+          });
+        });
         return true;
       }
     });
@@ -420,6 +450,17 @@ class MIFICONTROLLER extends ChangeNotifier {
       }
     });
 
+    ApiClient(get_endpoint)
+        .getData('?isTest=false&cmd=sms_capacity_info',
+            headers: headers, printLogs: false)
+        .then((value) {
+      try {
+        var data = jsonDecode(value.data);
+        ref.read(smsProvider).sms_total_count =
+            int.tryParse(data["sms_nvused_total"]) ?? 0;
+      } catch (e) {}
+    });
+
     ApiClient(get_endpoint).getData(
         '?isTest=false&multi_data=1&cmd=wifi_sta_connection,Cap_station_mode&_=1700081935978',
         headers: headers,
@@ -497,7 +538,7 @@ class MIFICONTROLLER extends ChangeNotifier {
 
       ref.read(deviceProvider).max = int.tryParse(data["MAX_Access_num"]) ?? 0;
 
-      ref.read(homeProvider).sms_unread =
+      ref.read(smsProvider).sms_unread =
           int.tryParse(data["sms_unread_num"]) ?? 0;
 
       ref.read(homeProvider).network_provider = data["network_provider"];
@@ -507,6 +548,7 @@ class MIFICONTROLLER extends ChangeNotifier {
           name: data["network_type"]);
 
       ref.read(homeProvider).notifyListeners();
+      ref.read(smsProvider).notifyListeners();
     });
   }
   // ======================= HOME END ================================

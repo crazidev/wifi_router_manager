@@ -21,8 +21,9 @@ class CustomBottomNavBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var ctr = ref.watch(homeProvider);
-    var dctr = ref.watch(deviceProvider);
+    var connectedDevices =
+        ref.watch(deviceProvider.select((value) => value.connected));
+    var sms_unread = ref.watch(smsProvider.select((value) => value.sms_unread));
 
     return BottomNavigationBar(
       elevation: 0,
@@ -38,14 +39,14 @@ class CustomBottomNavBar extends ConsumerWidget {
             label: ''),
         BottomNavigationBarItem(
             icon: Badge(
-                label: Text('${dctr.connected}'),
+                label: Text('${connectedDevices}'),
                 isLabelVisible: true,
                 child: const Icon(Ionicons.link)),
             label: ''),
         BottomNavigationBarItem(
             icon: Badge(
-                label: Text(ctr.sms_unread.toString()),
-                isLabelVisible: ctr.sms_unread == "0" ? false : true,
+                label: Text(sms_unread.toString()),
+                isLabelVisible: sms_unread == "0" ? false : true,
                 child: const Icon(Ionicons.chatbubble_ellipses)),
             label: ''),
         const BottomNavigationBarItem(

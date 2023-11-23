@@ -35,7 +35,7 @@ class USSDNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  TextEditingController ussd = TextEditingController(text: "*121#");
+  TextEditingController ussd = TextEditingController(text: "*310#");
   TextEditingController ussdReply = TextEditingController();
 
   fetchUSSD() async {

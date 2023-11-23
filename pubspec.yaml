@@ -30,6 +30,7 @@ dependencies:
   riverpod_mutations_annotation: ^1.0.3
   build_runner: ^2.4.6
   riverpod_generator: ^2.3.5
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

@@ -34,7 +34,6 @@ class HomeNotifier extends ChangeNotifier {
   NNetworkBar networkBar = NNetworkBar(bar_length: 0, name: '2G');
   String? ipAddress = "";
   String? imel;
-  int sms_unread = 0;
   int battery_level = 0;
   bool isCharging = false;
   bool circularDataActive = true;
