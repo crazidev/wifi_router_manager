@@ -574,21 +574,19 @@ class DeviceList extends StatelessWidget {
 class Dialog extends StatelessWidget {
   Dialog({
     Key? key,
-    this.data,
-    // required this.controller,
+    required this.data,
   }) : super(key: key);
 
-  // final HomeController controller;
-  final dynamic data;
+  final DeviceData data;
   var isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController reply = TextEditingController(text: data['name']);
+    TextEditingController reply = TextEditingController(text: data.name);
 
     return AlertDialog(
       backgroundColor: Theme.of(context).dialogBackgroundColor,
-      title: Text(data['name']),
+      title: Text(data.name),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

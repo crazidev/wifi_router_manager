@@ -18,7 +18,7 @@ final smsConversationProvider = ChangeNotifierProvider<ChangeNotifier>((ref) {
 
 // ignore: must_be_immutable
 class SMSConversationScreen extends ConsumerWidget {
-  SMSConversationScreen({
+  const SMSConversationScreen({
     super.key,
     this.data,
   });

@@ -12,6 +12,7 @@ import 'package:router_manager/controller/sms_controller.dart';
 import 'package:router_manager/controller/ussd_controller.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/core/custom_navigator.dart';
+import 'package:router_manager/dashhboard_navigator.dart';
 import 'package:router_manager/data/api_client.dart';
 import 'package:router_manager/data/model/response/sms_model.dart';
 import 'package:router_manager/screen/auth/controller/auth_controller.dart';
@@ -248,7 +249,9 @@ class MIFICONTROLLER extends ChangeNotifier {
                 newestSMS: findNewestSMS(e.value))));
       }
 
-      ref.read(smsProvider).refreshController.refreshCompleted();
+      if (ref.read(pageIndexProvider) == 2) {
+        ref.read(smsProvider).refreshController.refreshCompleted();
+      }
       ref.read(smsConversationProvider).notifyListeners();
       ref.read(smsProvider).notifyListeners();
     });
@@ -498,7 +501,7 @@ class MIFICONTROLLER extends ChangeNotifier {
       }
 
       if (data["loginfo"] != 'ok') {
-        // login(password: ref.read(authProvider).passwordCtr.text);
+        login(password: ref.read(authProvider).passwordCtr.text);
       }
 
       ref.read(homeProvider).isCharging =
@@ -647,4 +650,122 @@ class MIFICONTROLLER extends ChangeNotifier {
 //   "credentials": "omit"
 // });
   }
+
+//   fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "isTest=false&goformId=REBOOT_DEVICE",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "omit"
+// });
+
+// fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "isTest=false&goformId=SHUTDOWN_DEVICE",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "omit"
+// });
+
+// Fetch network settings
+//   fetch("http://192.168.0.1/goform/goform_get_cmd_process?isTest=false&cmd=m_ssid_enable%2CRadioOff%2CNoForwarding%2Cm_NoForwarding%2CWPAPSK1_encode%2Cm_WPAPSK1_encode%2Cwifi_attr_max_station_number%2CSSID1%2CAuthMode%2CHideSSID%2CMAX_Access_num%2CEncrypType%2Cm_SSID%2Cm_AuthMode%2Cm_HideSSID%2Cm_MAX_Access_num%2Cm_EncrypType%2Cqrcode_display_switch%2Cm_qrcode_display_switch&multi_data=1&_=1701010022213", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": null,
+//   "method": "GET",
+//   "mode": "cors",
+//   "credentials": "include"
+// });
+
+// Set netwwork settings
+//   fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "goformId=SET_WIFI_SSID1_SETTINGS&isTest=false&ssid=MTN_5G_7A64B4&broadcastSsidEnabled=0&MAX_Access_num=31&security_mode=WPA2PSK&cipher=1&NoForwarding=0&security_shared_mode=1&passphrase=MTIzNDU2Nzg5MA%3D%3D",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "include"
+// });
+
+// fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "isTest=false&goformId=SET_aBEARER_PREFERENCE&BearerPreference=Only_LTE",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "include"
+// });
+
+// fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "isTest=false&goformId=SET_BEARER_PREFERENCE&BearerPreference=Only_WCDMA",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "include"
+// });
+
+// fetch("http://192.168.0.1/goform/goform_get_cmd_process?isTest=false&multi_data=1&cmd=wifi_sta_connection%2Cap_station_mode&_=1701010714520", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": null,
+//   "method": "GET",
+//   "mode": "cors",
+//   "credentials": "include"
+// });
+
+// fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
+//   "headers": {
+//     "accept": "application/json, text/javascript, */*; q=0.01",
+//     "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+//     "x-requested-with": "XMLHttpRequest"
+//   },
+//   "referrer": "http://192.168.0.1/index.html",
+//   "referrerPolicy": "strict-origin-when-cross-origin",
+//   "body": "isTest=false&goformId=SET_BEARER_PREFERENCE&BearerPreference=NETWORK_auto",
+//   "method": "POST",
+//   "mode": "cors",
+//   "credentials": "include"
+// });
 }

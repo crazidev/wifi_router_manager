@@ -46,7 +46,7 @@ class CustomBottomNavBar extends ConsumerWidget {
         BottomNavigationBarItem(
             icon: Badge(
                 label: Text(sms_unread.toString()),
-                isLabelVisible: sms_unread == "0" ? false : true,
+                isLabelVisible: sms_unread == 0 ? false : true,
                 child: const Icon(Ionicons.chatbubble_ellipses)),
             label: ''),
         const BottomNavigationBarItem(

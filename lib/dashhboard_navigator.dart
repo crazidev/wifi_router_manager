@@ -10,6 +10,7 @@ import 'package:router_manager/controller/sms_controller.dart';
 import 'package:router_manager/core/app_export.dart';
 import 'package:router_manager/screen/devices/devices.dart';
 import 'package:router_manager/screen/home/home_screen.dart';
+import 'package:router_manager/screen/settings/settings_screen.dart';
 import 'package:router_manager/screen/sms/sms_screen.dart';
 import 'package:router_manager/screen/ussd/ussd_screen.dart';
 
@@ -45,13 +46,10 @@ class DashboardNavigator extends ConsumerWidget {
                   index: index,
                   children: [
                     HomeScreen(),
-                    Devices(),
+                    const Devices(),
                     SMSscreen(),
-
-                    // const Placeholder(),
-
                     UssdScreen(),
-                    const Placeholder()
+                    const SettingsScreen()
                   ],
                 )),
           ),
