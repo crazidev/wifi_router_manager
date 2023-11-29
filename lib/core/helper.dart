@@ -65,30 +65,31 @@ class Helper {
     bool? enableDrag = true,
     bool? expand = false,
   }) {
-    if (Platform.isIOS) {
-      CupertinoScaffold.showCupertinoModalBottomSheet(
+    // if (Platform.isIOS) {
+    //   CupertinoScaffold.showCupertinoModalBottomSheet(
+    //     context: context,
+    //     backgroundColor: backgroundColor,
+    //     isDismissible: isDismisiable,
+    //     enableDrag: enableDrag!,
+    //     expand: expand!,
+    //     builder: (context) => child,
+    //   );
+    // } else {
+    showModalBottomSheet(
         context: context,
-        backgroundColor: backgroundColor,
-        isDismissible: isDismisiable,
+        isDismissible: isDismisiable!,
         enableDrag: enableDrag!,
-        expand: expand!,
-        builder: (context) => child,
-      );
-    } else {
-      showModalBottomSheet(
-          context: context,
-          isDismissible: isDismisiable!,
-          enableDrag: enableDrag!,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(40),
-              topRight: Radius.circular(40),
-            ),
+        backgroundColor: AppColor.bg,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(40),
+            topRight: Radius.circular(40),
           ),
-          isScrollControlled: expand!,
-          builder: (_) {
-            return child;
-          });
-    }
+        ),
+        isScrollControlled: expand!,
+        builder: (_) {
+          return child;
+        });
+    // }
   }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_typing_uninitialized_variables, empty_catches
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -305,7 +307,12 @@ class MIFICONTROLLER extends ChangeNotifier {
 
             if (data['sms_cmd_status_result'] == "3") {
               timer.cancel();
-              ref.read(smsProvider).refreshController.requestRefresh();
+              if (ref.read(pageIndexProvider) == 2) {
+                ref.read(smsProvider).refreshController.requestRefresh();
+              }
+            }
+            if (data['sms_cmd_status_result'] == "2") {
+              timer.cancel();
             }
           });
         });
@@ -651,33 +658,28 @@ class MIFICONTROLLER extends ChangeNotifier {
 // });
   }
 
-//   fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
-//   "headers": {
-//     "accept": "application/json, text/javascript, */*; q=0.01",
-//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-//     "x-requested-with": "XMLHttpRequest"
-//   },
-//   "referrer": "http://192.168.0.1/index.html",
-//   "referrerPolicy": "strict-origin-when-cross-origin",
-//   "body": "isTest=false&goformId=REBOOT_DEVICE",
-//   "method": "POST",
-//   "mode": "cors",
-//   "credentials": "omit"
-// });
+  rebootDevice() {
+    ApiClient(set_endpoint).postData(
+      "isTest=false&goformId=REBOOT_DEVICE",
+      printLogs: true,
+      headers: headers,
+    );
+  }
 
-// fetch("http://192.168.0.1/goform/goform_set_cmd_process", {
-//   "headers": {
-//     "accept": "application/json, text/javascript, */*; q=0.01",
-//     "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-//     "x-requested-with": "XMLHttpRequest"
-//   },
-//   "referrer": "http://192.168.0.1/index.html",
-//   "referrerPolicy": "strict-origin-when-cross-origin",
-//   "body": "isTest=false&goformId=SHUTDOWN_DEVICE",
-//   "method": "POST",
-//   "mode": "cors",
-//   "credentials": "omit"
-// });
+  shutdownDevice() {
+    ApiClient(set_endpoint).postData(
+      "isTest=false&goformId=SHUTDOWN_DEVICE",
+      printLogs: true,
+      headers: headers,
+    );
+  }
+
+  fetchNetworkSetting() {
+    ApiClient(get_endpoint).getData(
+        '?isTest=false&cmd=upgrade_result&_=1700082271079',
+        headers: headers,
+        printLogs: false);
+  }
 
 // Fetch network settings
 //   fetch("http://192.168.0.1/goform/goform_get_cmd_process?isTest=false&cmd=m_ssid_enable%2CRadioOff%2CNoForwarding%2Cm_NoForwarding%2CWPAPSK1_encode%2Cm_WPAPSK1_encode%2Cwifi_attr_max_station_number%2CSSID1%2CAuthMode%2CHideSSID%2CMAX_Access_num%2CEncrypType%2Cm_SSID%2Cm_AuthMode%2Cm_HideSSID%2Cm_MAX_Access_num%2Cm_EncrypType%2Cqrcode_display_switch%2Cm_qrcode_display_switch&multi_data=1&_=1701010022213", {

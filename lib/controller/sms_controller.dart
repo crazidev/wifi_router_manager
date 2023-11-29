@@ -74,15 +74,15 @@ class SMSNotifier extends ChangeNotifier {
     } else {}
   }
 
-  deleteSMS(List<SMSModel> sms_list) {
+  deleteSMS(List<SMSModel> smsList) {
     if (device == Device.MTN_MIFI_4G) {
-      ref.read(MifiCtrProvider).deleteSMS(sms_list);
+      ref.read(MifiCtrProvider).deleteSMS(smsList);
     } else {}
   }
 
-  updateReadStatus(List<SMSModel> sms_list) {
+  updateReadStatus(List<SMSModel> smsList) {
     if (device == Device.MTN_MIFI_4G) {
-      ref.read(MifiCtrProvider).updateReadStatus(sms_list);
+      ref.read(MifiCtrProvider).updateReadStatus(smsList);
     } else {}
   }
 

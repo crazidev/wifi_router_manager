@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cherry_toast/cherry_toast.dart';
 import 'package:cherry_toast/resources/arrays.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
 import 'package:router_manager/controller/sms_controller.dart';
 import 'package:router_manager/core/app_export.dart';
+import 'package:router_manager/data/model/response/sms_model.dart';
 
 import '../../controller/home_controller.dart';
 
@@ -25,15 +27,28 @@ class SMSConversationScreen extends ConsumerWidget {
 
   final SMSGroupedModel? data;
 
+  List<SMSModel> getSmsList(WidgetRef ref) {
+    if (ref.read(smsProvider).sms_grouped_list != null) {
+      var seen = ref
+          .read(smsProvider)
+          .sms_grouped_list!
+          .where((e) => e.number == data?.number);
+
+      if (seen.isNotEmpty) {
+        return seen.first.smsList;
+      } else {
+        return [];
+      }
+    }
+
+    return [];
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    var keyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     ref.watch(smsConversationProvider);
-    var smsList = ref
-        .read(smsProvider)
-        .sms_grouped_list!
-        .where((e) => e.number == data?.number)
-        .first
-        .smsList;
+    var smsList = getSmsList(ref);
 
     ref.listen(smsProvider.select((value) => value.sms_total_count),
         (previous, next) {
@@ -43,99 +58,93 @@ class SMSConversationScreen extends ConsumerWidget {
       }
     });
 
-    return WillPopScope(
-      onWillPop: () {
-        ref.read(smsProvider).refreshController.refreshCompleted();
-        return Future.value(true);
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: false,
-          automaticallyImplyLeading: false,
-          toolbarHeight: 70,
-          title: Text(
-                  '${data?.number} ${data!.smsList.length > 1 ? "(${data?.smsList.length})" : ""}')
-              .marginOnly(top: 10),
-          actions: [],
-          bottom: PreferredSize(
-              child: Divider(
-                color: AppColor.container,
-              ),
-              preferredSize: const Size.fromHeight(5)),
-        ),
-        body: Stack(
-          children: [
-            Positioned(
-              bottom: 0,
-              right: -300,
-              child: Image.asset(
-                'assets/5076404.jpg',
-                // fit: BoxFit.,
-                opacity: const AlwaysStoppedAnimation(0.1),
-                width: 1400,
-                // height: ,
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        toolbarHeight: 70,
+        title: Text(
+                '${data?.number} ${data!.smsList.length > 1 ? "(${data?.smsList.length})" : ""}')
+            .marginOnly(top: 10),
+        actions: [],
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(5),
+            child: Divider(
+              color: AppColor.container,
+            )),
+      ),
+      body: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            right: -300,
+            child: Image.asset(
+              'assets/5076404.jpg',
+              // fit: BoxFit.,
+              opacity: const AlwaysStoppedAnimation(0.1),
+              width: 1400,
+              // height: ,
             ),
-            Column(
-              children: [
-                Expanded(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    reverse: true,
-                    padding: EdgeInsets.all(10),
-                    itemCount: smsList.length,
-                    separatorBuilder: (context, index) => SizedBox(height: 10),
-                    itemBuilder: (_, index) {
-                      var sms = smsList[index];
-                      return ChatList(data: sms);
-                      // DeviceList(data: sms);
-                    },
-                  ),
+          ),
+          Column(
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  reverse: true,
+                  padding: EdgeInsets.all(10),
+                  itemCount: smsList.length,
+                  separatorBuilder: (context, index) => SizedBox(height: 10),
+                  itemBuilder: (_, index) {
+                    var sms = smsList[index];
+                    return ChatList(data: sms);
+                    // DeviceList(data: sms);
+                  },
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(0.1),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Ionicons.attach_outline)),
-                          Expanded(
-                              child: TextFormField(
-                            // focusNode: focusNode,
-                            minLines: 1,
-                            maxLines: 4,
-                            controller:
-                                ref.read(smsProvider).new_sms_controller,
-                            decoration: const InputDecoration(
-                                hintText: 'Enter your message...',
-                                border: InputBorder.none),
-                          )),
-                          IconButton(
-                              onPressed: () {
-                                ref.read(smsProvider).sendSMS(SendSMSModel(
-                                    message: ref
-                                        .read(smsProvider)
-                                        .new_sms_controller
-                                        .text,
-                                    number: data?.number ?? ''));
-                              },
-                              icon: const Icon(Ionicons.send)),
-                        ],
-                      ),
-                    ],
-                  ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.purple.withOpacity(0.1),
                 ),
-              ],
-            )
-          ],
-        ),
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(width: 15),
+                        Expanded(
+                            child: TextFormField(
+                          // focusNode: focusNode,
+                          minLines: 1,
+                          maxLines: 4,
+                          controller: ref.read(smsProvider).new_sms_controller,
+                          decoration: const InputDecoration(
+                              hintText: 'Enter your message...',
+                              border: InputBorder.none),
+                        )),
+                        IconButton(
+                            onPressed: () {
+                              ref.read(smsProvider).sendSMS(SendSMSModel(
+                                  message: ref
+                                      .read(smsProvider)
+                                      .new_sms_controller
+                                      .text,
+                                  number: data?.number ?? ''));
+                              ref.read(smsProvider).new_sms_controller.clear();
+                            },
+                            icon: const Icon(Ionicons.send)),
+                      ],
+                    ),
+                    if (Platform.isIOS && !keyboardVisible)
+                      const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ],
+          )
+        ],
       ),
     );
   }
