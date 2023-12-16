@@ -5,6 +5,7 @@ import 'package:cherry_toast/cherry_toast.dart';
 import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:get/get.dart';
@@ -93,9 +94,10 @@ class SMSConversationScreen extends ConsumerWidget {
                 child: ListView.separated(
                   shrinkWrap: true,
                   reverse: true,
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   itemCount: smsList.length,
-                  separatorBuilder: (context, index) => SizedBox(height: 10),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 10),
                   itemBuilder: (_, index) {
                     var sms = smsList[index];
                     return ChatList(data: sms);
@@ -107,13 +109,13 @@ class SMSConversationScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: Colors.purple.withOpacity(0.1),
                 ),
-                padding: EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: [
-                        SizedBox(width: 15),
+                        const SizedBox(width: 15),
                         Expanded(
                             child: TextFormField(
                           // focusNode: focusNode,
@@ -180,7 +182,7 @@ class ChatList extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              SelectableText(
                 data!.content,
                 style: const TextStyle(fontSize: 14),
               ),
@@ -198,7 +200,7 @@ class ChatList extends StatelessWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.w400),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Consumer(
                     builder: (context, ref, child) {
                       return InkWell(
@@ -212,6 +214,16 @@ class ChatList extends StatelessWidget {
                           ));
                     },
                   ),
+                  const SizedBox(width: 10),
+                  InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: data!.content));
+                      },
+                      child: Icon(
+                        Ionicons.clipboard,
+                        size: 14,
+                        color: AppColor.primary,
+                      )),
                 ],
               ),
             ],
